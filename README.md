@@ -1,2 +1,2 @@
-# AOD-Home
-Repositorio referente al nuevo frontal web de Aragón Open Data
+# aod-back
+backend de aod-home de la web de Aragón Open Data
