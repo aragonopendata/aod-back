@@ -1,0 +1,6 @@
+ {{#each logstashs}}
+ - pipeline.id: {{this.portal_name}}
+   pipeline.batch.size: 1
+   pipeline.workers: 1
+   path.config: "/data/apps/LogStash/LogStashPipelines/{{this.portal_name}}.conf"
+{{/each}}
