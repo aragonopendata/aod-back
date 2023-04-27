@@ -157,6 +157,7 @@ router.post('/logstash/:logid/reload', async function (req, res) {
         var to = new Date(parseInt(toT));
 
         var portal = await logstashUtils.getFileDB(id);
+        var delay = req.params.delay
 
         res.json({
             'status': constants.REQUEST_REQUEST_OK,
@@ -172,7 +173,7 @@ router.post('/logstash/:logid/reload', async function (req, res) {
     if (portal.length > 0) {
         for (var date = from; date <= to; date.setDate(date.getDate() + 1)) {
             logger.info("Recargando dia - " + date);
-            await elasticUtils.reloadPortal(portal[0], date);
+            await elasticUtils.reloadPortal(portal[0], date, delay);
         }
     }
 });
