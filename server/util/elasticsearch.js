@@ -479,6 +479,7 @@ async function pages_ga4(portal, delay) {
                             "portal": portal.url,
                             "type": "pages",
                             "view": portal.view
+                            "url" : url
                         };
                         r.push(value);
                     });
@@ -574,10 +575,12 @@ async function files_ga4(portal, delay) {
                             eventLabel = 'Desconocido';
                         }
                         var value = {
-                            "extension": eventAction,
+                            //"extension": eventAction,
                             "@timestamp": indexdate,
                             "path": eventLabel,
-                            "downloads": parseInt(element.totalEvents),
+                            "event_Count": eventCount,
+                            "event_Name" : eventName,
+                            //"downloads": parseInt(element.totalEvents),
                             "portal": portal.url,
                             "type": "files",
                             "view": portal.view
@@ -704,7 +707,8 @@ async function countries_ga4(portal, delay) {
                             "@timestamp": indexdate,
                             "portal": portal.url,
                             "country": country,
-                            "type": "countries"
+                            "type": "countries",
+                            "visits" : visits
                         };
                         r.push(value);
                     });
