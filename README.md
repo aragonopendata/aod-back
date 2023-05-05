@@ -1,7 +1,7 @@
 # aod-back
 Este repositorio contiene el código backend para la web aod-home de Aragón Open Data
 
-##Configuración y despliegue de aod-back
+## Configuración y despliegue de aod-back
 Desde el directorio aod-home en el entorno elegido
 1. Ejecutar git clone https://github.com/aragonopendata/aod-back.git
 2. Se habrá creado la carpeta aod-back. Ingresar dentro de la misma
