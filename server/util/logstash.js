@@ -15,11 +15,11 @@ module.exports = {
         if (portal.type == 'urchin') {
             pipelineTemplate = fs.readFileSync(String(templatePath) + '/urchin_template_v2.conf');
         }
-        if (portal.type == 'analytics') {
+        /*if (portal.type == 'analytics') {
             pipelineTemplate = fs.readFileSync(String(templatePath) + '/analytics_template_v2.conf');
-        }
+        }*/
         
-        if (portal.type == 'ga4') {
+        if (portal.type == 'analytics') {
             pipelineTemplate = fs.readFileSync(String(templatePath) + '/ga4_template.conf');
         }
 
