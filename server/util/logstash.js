@@ -18,6 +18,10 @@ module.exports = {
         if (portal.type == 'analytics') {
             pipelineTemplate = fs.readFileSync(String(templatePath) + '/analytics_template_v2.conf');
         }
+        
+        if (portal.type == 'ga4') {
+            pipelineTemplate = fs.readFileSync(String(templatePath) + '/ga4_template.conf');
+        }
 
         var compiledTemplate = Handlebars.compile(String(pipelineTemplate));
 
