@@ -478,7 +478,7 @@ async function pages_ga4(portal, delay) {
                             "title": pageTitle,
                             "portal": portal.url,
                             "type": "pages",
-                            "view": portal.view
+                            "view": portal.view,
                             "url" : url
                         };
                         r.push(value);
