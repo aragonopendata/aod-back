@@ -5,7 +5,6 @@ var path = require('path');
 const Handlebars = require('handlebars');
 const db = require('../db/db-connection');
 const pool = db.getPool();
-require('dotenv').config({ path: '../../../.env' });
 
 module.exports = {
     createPipeline: function (portal, id) {
@@ -32,8 +31,8 @@ module.exports = {
             "url": String(portal.url),
             "id": String(id),
             "eurl": constants.ANALYTICS_ELASTIC_URL,
-            "euser": process.env.ELASTIC_USER,
-            "epass": process.env.ELASTIC_PASS
+            "euser": constants.ELASTIC_USER,
+            "epass": constants.ELASTIC_PASS
         };
 
         var pipeline = compiledTemplate(data);
