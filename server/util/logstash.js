@@ -31,8 +31,8 @@ module.exports = {
             "url": String(portal.url),
             "id": String(id),
             "eurl": constants.ANALYTICS_ELASTIC_URL,
-            "euser": constants.ELASTIC_USER,
-            "epass": constants.ELASTIC_PASS
+            "euser": String(constants.ELASTIC_USER),
+            "epass": String(constants.ELASTIC_PASS)
         };
 
         var pipeline = compiledTemplate(data);
