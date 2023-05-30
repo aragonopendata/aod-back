@@ -10,7 +10,7 @@
   "author": "Open Data DGA",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^6.8.2",
+    "@elastic/elasticsearch": "^8.1.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.17.2",
     "crypto-js": "^3.1.9-1",
@@ -30,7 +30,7 @@
     "multer": "^1.3.0",
     "node-xlsx": "^0.15.0",
     "nodemon": "^1.11.0",
-    "pg": "^7.2.0",
+    "pg": "^8.0.3",
     "pg-format": "^1.0.4",
     "request": "^2.83.0",
     "unidecode": "0.1.8",

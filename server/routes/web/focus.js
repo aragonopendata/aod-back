@@ -499,9 +499,10 @@ function getAllPublicsHistories(text, category){
 
     return new Promise((resolve, reject) => {
         try {
-            pool.connect((err, client, done) => {
+	    pool.connect((err, client, done) => {
 
                 if(err){
+	            logger.error(err);
                     logger.error('getAllPublicsHistories - No se puede establecer conexión con la BBDD');
                     reject(err)
                     return

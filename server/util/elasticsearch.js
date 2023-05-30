@@ -3,9 +3,13 @@ const { Client } = require('@elastic/elasticsearch')
 const http = require('http');
 const xml = require('xml2js');
 
-const client = new Client({ node: constants.ANALYTICS_ELASTIC_URL })
-var gapiUrl = 'http://localhost:50053';
-var ga4piUrl = 'http://localhost:50054';
+const client = new Client({ node: constants.ANALYTICS_ELASTIC_URL,
+auth: {
+    username: constants.ELASTIC_USER,
+    password: constants.ELASTIC_PASS
+}})
+//var gapiUrl = 'http://localhost:50053';
+var ga4piUrl = 'http://'+process.env.GAPI4_HOST+':'+process.env.GAPI4_PORT;
 module.exports = {
     deletePortal: function (id) {
         client.indices.delete({
@@ -30,7 +34,7 @@ module.exports = {
         })
     },
     reloadPortal: async function (portal, reloadDate, delay) {
-        await delete_date(reloadDate, portal.id_logstash)
+	await delete_date(reloadDate, portal.id_logstash)
         if (portal.type == 'urchin') {
             await browsers_urchin(portal, reloadDate);
             await pages_urchin(portal, reloadDate);
@@ -44,10 +48,10 @@ module.exports = {
             await countries_ga(portal, reloadDate);
         }*/
         if (portal.type == 'analytics') {
-            await browsers_ga4(portal, delay);
-            await pages_ga4(portal, delay);
-            await files_ga4(portal, delay);
-            await countries_ga4(portal, delay);
+            await browsers_ga4(portal, reloadDate);
+            await pages_ga4(portal, reloadDate);
+            await files_ga4(portal, reloadDate);
+            await countries_ga4(portal, reloadDate);
         }
 
     }
@@ -329,8 +333,8 @@ async function browsers_ga(portal, date) {
     return index('logstash-reports-browsers-' + portal.id_logstash, responsevalue);
 }
 
-async function browsers_ga4(portal, delay) {
-    var requestUrl = ga4piUrl + '/browsers_ga?delay=' + delay + '&view=' + portal.view;
+async function browsers_ga4(portal, date) {
+    var requestUrl = ga4piUrl + '/browsers_ga?view=' + portal.view + '&date=' + date.getTime() / 1000;
 
     var http_promise = new Promise((resolve, reject) => {
         http.get(requestUrl, (resp) => {
@@ -441,8 +445,8 @@ async function pages_ga(portal, date) {
     return index('logstash-reports-pages-' + portal.id_logstash, responsevalue);
 }
 
-async function pages_ga4(portal, delay) {
-    var requestUrl = ga4piUrl + '/pages_ga?delay=' + delay + '&view=' + portal.view;
+async function pages_ga4(portal, date) {
+    var requestUrl = ga4piUrl + '/pages_ga?view=' + portal.view + '&date=' + date.getTime() / 1000;
     var http_promise = new Promise((resolve, reject) => {
         http.get(requestUrl, (resp) => {
             let data = '';
@@ -478,8 +482,7 @@ async function pages_ga4(portal, delay) {
                             "title": pageTitle,
                             "portal": portal.url,
                             "type": "pages",
-                            "view": portal.view,
-                            "url" : url
+                            "view": portal.view
                         };
                         r.push(value);
                     });
@@ -548,8 +551,8 @@ async function files_ga(portal, date) {
     return index('logstash-reports-files-' + portal.id_logstash, responsevalue);
 }
 
-async function files_ga4(portal, delay) {
-    var requestUrl = ga4piUrl + '/files_ga?delay=' + delay + '&view=' + portal.view;
+async function files_ga4(portal, date) {
+    var requestUrl = ga4piUrl + '/files_ga?view=' + portal.view + '&date=' + date.getTime() / 1000;
     var http_promise = new Promise((resolve, reject) => {
         http.get(requestUrl, (resp) => {
             let data = '';
@@ -578,8 +581,8 @@ async function files_ga4(portal, delay) {
                             //"extension": eventAction,
                             "@timestamp": indexdate,
                             "path": eventLabel,
-                            "event_Count": eventCount,
-                            "event_Name" : eventName,
+                            "event_Count": element.eventCount,
+                            "event_Name" : element.eventName,
                             //"downloads": parseInt(element.totalEvents),
                             "portal": portal.url,
                             "type": "files",
@@ -663,8 +666,8 @@ async function countries_ga(portal, date) {
     return index('logstash-reports-countries-' + portal.id_logstash, responsevalue);
 }
 
-async function countries_ga4(portal, delay) {
-    var requestUrl = ga4piUrl + '/countries_ga?delay=' + delay + '&view=' + portal.view;
+async function countries_ga4(portal, date) {
+    var requestUrl = ga4piUrl + '/countries_ga?view=' + portal.view + '&date=' + date.getTime() / 1000;
     var http_promise = new Promise((resolve, reject) => {
         http.get(requestUrl, (resp) => {
             let data = '';
@@ -696,20 +699,13 @@ async function countries_ga4(portal, delay) {
                         }
                         var value = {
                             "visits": parseInt(element.sessions),
-                            "geoip": {
-                                "location": {
-                                    "lon": parseFloat(element.longitude),
-                                    "lat": parseFloat(element.latitude)
-                                }
-                            },
                             "city": city,
                             "region": region,
                             "@timestamp": indexdate,
                             "portal": portal.url,
                             "country": country,
-                            "type": "countries",
-                            "visits" : visits
-                        };
+                            "type": "countries"
+                            };
                         r.push(value);
                     });
                 }
@@ -751,8 +747,8 @@ async function index(index, list) {
             await client.index({
                 index: index,
                 refresh: true,
-                type: body.type,
-                body: body
+                //type: body.type,
+                document: body
             }).then().catch((error) => {
                 console.log(error);
             });
