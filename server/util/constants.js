@@ -286,10 +286,15 @@ exports.SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 exports.SMTP_HOST = process.env.SMTP_HOST;
 exports.SMTP_PORT = process.env.SMTP_PORT;
 
+/* ELASTIC PROPERTIES */
+exports.ELASTIC_USER= process.env.ELASTIC_USER
+exports.ELASTIC_PASS= process.env.ELASTIC_PASS
+
+
 /* ******************* */
 /* ANALYTICS CONF */
 exports.ANALYTICS_LOGSTASH_PATH = '/data/apps/LogStash'
-exports.ANALYTICS_ELASTIC_URL = 'http://' + process.env.DB_HOST + ':9200'
+exports.ANALYTICS_ELASTIC_URL = 'http://' + process.env.ELASTIC_HOST + ':9200'
 
 /* ******************* */
 /* SPIDER LOG FILE */
@@ -311,6 +316,13 @@ exports.API_URL_FOCUS_STATE_HISTORY_TOKEN = '/focus/history/token/state';
 exports.API_URL_FOCUS_IMAGE_CATEGORY = '/focus/imageCategory';
 
 exports.API_URL_FOCUS_HISTORIES = '/focus/histories';
+
+
+/* *********************** */
+/* GAPI4 */
+
+exports.GAPI4_HOST = process.env.GAPI4_HOST;
+exports.GAPI4_PORT = process.env.GAPI4_PORT;
 
 
 exports.statesEnum = {

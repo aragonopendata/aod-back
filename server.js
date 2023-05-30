@@ -98,6 +98,6 @@ app.set('port', port);
 const server = http.createServer(app);
 
 // SERVER LISTENING.
-app.listen(port, function () {
+app.listen(port,'0.0.0.0', function () {
     logger.info('Server started on port ' + port);
 })
