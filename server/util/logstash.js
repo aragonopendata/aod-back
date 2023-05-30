@@ -30,7 +30,7 @@ module.exports = {
             "view": String(portal.view),
             "url": String(portal.url),
             "id": String(id),
-            "eurl": constants.ANALYTICS_ELASTIC_URL
+            "eurl": constants.ANALYTICS_ELASTIC_URL,
         };
 
         var pipeline = compiledTemplate(data);
