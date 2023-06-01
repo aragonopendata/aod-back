@@ -33,6 +33,7 @@ router.post('/logstash', function (req, res) {
     try {
         logstashUtils.insertLogstashDB(req.body).then((id) => {
             logstashUtils.createPipeline(req.body, id);
+            elasticUtils.createPortal(id);
             res.json({
                 'status': constants.REQUEST_REQUEST_OK,
                 'message': 'Correcto'

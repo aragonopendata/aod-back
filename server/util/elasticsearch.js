@@ -1,6 +1,7 @@
 const constants = require('./constants');
 const { Client } = require('@elastic/elasticsearch')
 const http = require('http');
+const path = require('path');
 const xml = require('xml2js');
 
 const client = new Client({ node: constants.ANALYTICS_ELASTIC_URL,
@@ -11,6 +12,70 @@ auth: {
 //var gapiUrl = 'http://localhost:50053';
 var ga4piUrl = 'http://'+process.env.GAPI4_HOST+':'+process.env.GAPI4_PORT;
 module.exports = {
+    createPortal: function (id){
+        client.indices.create(
+            {
+                index: 'logstash-reports-pages-' + id,
+                body:{
+                    mappings: {
+                        "properties": {
+                            "@timestamp": {
+                              "type": "date"
+                            },
+                            "event_Count": {
+                              "type": "text",
+                              "fields": {
+                                "keyword": {
+                                  "type": "keyword",
+                                  "ignore_above": 512
+                                }
+                              }
+                            },
+                            "event_Name": {
+                              "type": "text",
+                              "fields": {
+                                "keyword": {
+                                  "type": "keyword",
+                                  "ignore_above": 256
+                                }
+                              }
+                            },
+                            "portal": {
+                              "type": "text",
+                              "fields": {
+                                "keyword": {
+                                  "type": "keyword",
+                                  "ignore_above": 256
+                                }
+                              }
+                            },
+                            "type": {
+                              "type": "text",
+                              "fields": {
+                                "keyword": {
+                                  "type": "keyword",
+                                  "ignore_above": 256
+                                }
+                              }
+                            },
+                            "view": {
+                              "type": "text",
+                              "fields": {
+                                "keyword": {
+                                  "type": "keyword",
+                                  "ignore_above": 256
+                                }
+                              }
+                            }
+                          }
+                    }
+            }
+        });
+        client.indices.create({index: 'logstash-reports-browsers-' + id})
+        client.indices.create({index: 'logstash-reports-files-' + id})
+        client.indices.create({index: 'logstash-reports-countries-' + id})
+
+    },
     deletePortal: function (id) {
         client.indices.delete({
             index: 'logstash-reports-*-' + id,
@@ -518,19 +583,21 @@ async function files_ga(portal, date) {
                 var r = [];
                 if (response.reports && response.reports.length > 0) {
                     response.reports[0].report.forEach(element => {
-                        var eventAction = element.eventAction;
-                        if (eventAction === '(not set)' || eventAction === '(unknown)') {
-                            eventAction = 'Desconocido';
+                        var eventCount = element.eventCount;
+                        if (eventCount === '(not set)' || eventCount === '(unknown)') {
+                            eventCount = 'Desconocido';
                         }
-                        var eventLabel = element.eventLabel;
-                        if (eventLabel === '(not set)' || eventLabel === '(unknown)') {
-                            eventLabel = 'Desconocido';
+                        var eventName = element.eventName;
+                        if (eventName === '(not set)' || eventName === '(unknown)') {
+                            eventName = 'Desconocido';
                         }
                         var value = {
                             "extension": eventAction,
                             "@timestamp": indexdate,
-                            "path": eventLabel,
-                            "downloads": parseInt(element.totalEvents),
+  //                          "path": eventLabel,
+  //                          "downloads": parseInt(element.totalEvents),
+                            "event_Name": eventName,
+                            "event_Count": eventCount,
                             "portal": portal.url,
                             "type": "files",
                             "view": portal.view
@@ -755,3 +822,4 @@ async function index(index, list) {
         }
     }
 }
+
