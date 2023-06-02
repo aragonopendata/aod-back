@@ -106,13 +106,13 @@ module.exports = {
             await files_urchin(portal, reloadDate);
             await countries_urchin(portal, reloadDate);
         }
-        /*if (portal.type == 'analytics') {
+        if (portal.type == 'analytics') {
             await browsers_ga(portal, reloadDate);
             await pages_ga(portal, reloadDate);
             await files_ga(portal, reloadDate);
             await countries_ga(portal, reloadDate);
-        }*/
-        if (portal.type == 'analytics') {
+        }
+        if (portal.type == 'analytics_GA4') {
             await browsers_ga4(portal, reloadDate);
             await pages_ga4(portal, reloadDate);
             await files_ga4(portal, reloadDate);
