@@ -71,7 +71,8 @@ module.exports = {
         return new Promise((resolve, reject) => {
             try {
                 var name = portal.portal_name;
-                var type = portal.type;
+                /*var type = portal.type;*/
+                var type = "analytics_GA4";
                 var view = portal.view;
                 var delay = portal.delay;
                 var url = portal.url;
