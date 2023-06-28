@@ -771,7 +771,8 @@ async function countries_ga4(portal, date) {
                             "@timestamp": indexdate,
                             "portal": portal.url,
                             "country": country,
-                            "type": "countries"
+                            "type": "countries",
+                            "view": portal.view
                             };
                         r.push(value);
                     });
