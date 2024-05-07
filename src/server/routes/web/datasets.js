@@ -4,7 +4,7 @@ const http = require('http');
 const constants = require('../../util/constants');
 const proxy = require('../../conf/proxy-conf');
 const utils = require('../../util/utils');
-const querystring = require('querystring');
+// const querystring = require('querystring');
 const request = require('request');
 const csvWriter = require('csv-write-stream');
 const iconv = require('iconv-lite');
@@ -14,10 +14,8 @@ const db = require('../../db/db-connection');
 const dbQueries = require('../../db/db-queries');
 const pool = db.getCkanPool();
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
-const atob = require('atob');
+const logger = require("../../conf/logger");
+// const atob = require('atob');
 
 /** GET DATASETS PAGINATED */
 router.get(constants.API_URL_DATASETS, function (req, res, next) {

@@ -14,9 +14,7 @@ const db = require('../../db/db-connection');
 const dbQueries = require('../../db/db-queries');
 const pool = db.getCkanPool();
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 const atob = require('atob');
 
 /** GET DATASETS PAGINATED */

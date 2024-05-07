@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const constants = require('../../util/constants');
-const email = require('../../../node_modules/emailjs/email');
+const email = require('emailjs');
 const smtp = require('../../conf/smtp-conf');
 const smtpServer = smtp.getSMTPConnectionSettings();
 

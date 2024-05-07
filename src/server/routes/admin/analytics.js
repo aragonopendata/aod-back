@@ -5,9 +5,7 @@ const logstashUtils = require('../../util/logstash');
 const elasticUtils = require('../../util/elasticsearch');
 
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 
 /** GET ALL LOGSTASH CONFIG */
 router.get('/logstash', function (req, res) {

@@ -34,9 +34,7 @@ const fs = require('fs-extra');
 const db = require('../../db/db-connection');
 const pool = db.getPool();
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 
 //endregion
 

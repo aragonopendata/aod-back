@@ -11,7 +11,8 @@ const corsHeaders = require('./server/conf/cors-headers');
 //LOG SETTINGS
 const logConfig = require('./server/conf/log-conf');
 const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+// const logger = require('js-logging').dailyFile([loggerSettings]);
+var logger = require('js-logging').console(loggerSettings);
 
 // API ROUTES
 var datasets = require('./server/routes/web/datasets');
@@ -38,8 +39,8 @@ var mailer = require('./server/routes/web/mailer');
 var analytics = require('./server/routes/web/analytics');
 
 // API ROUTES 
-var authenticate = require('./server/routes/authenticate'); 
-var verifyToken = require('./server/util/verifyToken'); 
+var authenticate = require('./server/routes/authenticate');
+var verifyToken = require('./server/util/verifyToken');
 
 // EXPRESS APP
 const app = express();

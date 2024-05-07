@@ -1,0 +1,20 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - ckan-aod_default
+    env_file:
+      - .env
+#    environment:
+#      - DEBUG=express:*
+    ports:
+      - "4200:4200"
+#    command: tail -f /dev/null
+
+networks:
+  ckan-aod_default:
+    name: ckan-aod_default
+    external: true

@@ -8,9 +8,7 @@ const db = require('../../db/db-connection');
 const pool = db.getPool();
 
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 
 router.get(constants.API_URL_CAMPUS_EVENTS, function (req, res, next) {
     var rows = 10;

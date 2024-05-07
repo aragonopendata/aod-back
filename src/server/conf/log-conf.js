@@ -1,6 +1,6 @@
 'use strict'
 
-var logConfig = {
+let logConfig = {
     // customize the output format with multiple tags: timestamp, title, level, message, file 
     // pos, path, method, stack 
     // see the data object description for there meanings 
