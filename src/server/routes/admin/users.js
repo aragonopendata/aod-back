@@ -12,9 +12,7 @@ const proxy = require('../../conf/proxy-conf');
 const db = require('../../db/db-connection');
 const pool = db.getPool();
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 
 /** GET USERS */
 router.get('/users', function (req, res, next) {

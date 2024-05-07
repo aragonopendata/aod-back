@@ -5,9 +5,7 @@ const constants = require('../../util/constants');
 const proxy = require('../../conf/proxy-conf');
 const utils = require('../../util/utils');
 //LOG SETTINGS
-const logConfig = require('../../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require('../../conf/logger');
 
 /** GET ALL VIEWS */
 router.get(constants.API_URL_GA_OD_CORE + constants.API_URL_GA_OD_CORE_VIEWS, function (req, res, next) {

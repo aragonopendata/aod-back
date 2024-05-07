@@ -2,7 +2,7 @@
   "name": "aod-home",
   "version": "1.0.0",
   "description": "Web application to manage and serve all the information of the Open Data department in the DGA",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"

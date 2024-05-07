@@ -1,5 +1,5 @@
 //region Libraries
-const constants = require('constants');
+const constants = require('./constants');
 const dbQueries = require('../db/db-queries');
 
 //DB SETTINGS
