@@ -12,6 +12,8 @@ services:
 #      - DEBUG=express:*
     ports:
       - "4200:4200"
+    volumes:
+      - "./logs:/app/logs"
 #    command: tail -f /dev/null
 
 networks:
