@@ -1,7 +1,6 @@
 // DEPENDENCIES
 const express = require('express');
 const path = require('path');
-const http = require('http');
 const bodyParser = require('body-parser');
 const constants = require('./server/util/constants');
 const session = require('express-session');
@@ -12,35 +11,34 @@ const corsHeaders = require('./server/conf/cors-headers');
 const logConfig = require('./server/conf/log-conf');
 const loggerSettings = logConfig.getLogSettings();
 // const logger = require('js-logging').dailyFile([loggerSettings]);
-var logger = require('js-logging').console(loggerSettings);
+const logger = require('js-logging').console(loggerSettings);
 
 // API ROUTES
-var datasets = require('./server/routes/web/datasets');
-var tags = require('./server/routes/web/tags');
-var topics = require('./server/routes/web/topics');
-var organizations = require('./server/routes/web/organizations');
-var contents = require('./server/routes/web/contents');
-var campus = require('./server/routes/web/campus');
-var focus = require('./server/routes/web/focus');
-var focusAdmin = require('./server/routes/admin/focus');
-var usersAdmin = require('./server/routes/admin/users');
-var rolesAdmin = require('./server/routes/admin/roles');
-var contentsAdmin = require('./server/routes/admin/contents');
-var datasetsAdmin = require('./server/routes/admin/datasets');
-var topicsAdmin = require('./server/routes/admin/topics');
-var tagsAdmin = require('./server/routes/admin/tags');
-var organizationsAdmin = require('./server/routes/admin/organizations');
-var aodCore = require('./server/routes/admin/aod-core')
-var logstash = require('./server/routes/admin/analytics')
-var analytics = require('./server/routes/web/analytics')
-var campusAdmin = require('./server/routes/admin/campus');
-var sysAdmin = require('./server/routes/admin/sys-admin');
-var mailer = require('./server/routes/web/mailer');
-var analytics = require('./server/routes/web/analytics');
+const datasets = require('./server/routes/web/datasets');
+const tags = require('./server/routes/web/tags');
+const topics = require('./server/routes/web/topics');
+const organizations = require('./server/routes/web/organizations');
+const contents = require('./server/routes/web/contents');
+const campus = require('./server/routes/web/campus');
+const focus = require('./server/routes/web/focus');
+const focusAdmin = require('./server/routes/admin/focus');
+const usersAdmin = require('./server/routes/admin/users');
+const rolesAdmin = require('./server/routes/admin/roles');
+const contentsAdmin = require('./server/routes/admin/contents');
+const datasetsAdmin = require('./server/routes/admin/datasets');
+const topicsAdmin = require('./server/routes/admin/topics');
+const tagsAdmin = require('./server/routes/admin/tags');
+const organizationsAdmin = require('./server/routes/admin/organizations');
+const aodCore = require('./server/routes/admin/aod-core')
+const logstash = require('./server/routes/admin/analytics')
+const analytics = require('./server/routes/web/analytics')
+const campusAdmin = require('./server/routes/admin/campus');
+const sysAdmin = require('./server/routes/admin/sys-admin');
+const mailer = require('./server/routes/web/mailer');
 
 // API ROUTES 
-var authenticate = require('./server/routes/authenticate');
-var verifyToken = require('./server/util/verifyToken');
+const authenticate = require('./server/routes/authenticate');
+const verifyToken = require('./server/util/verifyToken');
 
 // EXPRESS APP
 const app = express();
@@ -96,9 +94,11 @@ const port = process.env.PORT || constants.EXPRESS_NODE_STARTING_PORT;
 app.set('port', port);
 
 // CREATE HTTP SERVER
-const server = http.createServer(app);
+// const server = http.createServer(app);
 
 // SERVER LISTENING.
 app.listen(port,'0.0.0.0', function () {
     logger.info('Server started on port ' + port);
 })
+
+module.exports = app;

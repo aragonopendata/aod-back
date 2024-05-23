@@ -1,4 +1,4 @@
-FROM node:14.0.0-buster
+FROM node:18-buster
 
 RUN mkdir /app && \
     chown -R node:node /app

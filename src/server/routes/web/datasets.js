@@ -34,7 +34,7 @@ router.get(constants.API_URL_DATASETS, function (req, res, next) {
 
             logger.info(texto_ny + " " + texto_n);
 
-            let text_ny = texto_ny.split('-');
+            // let text_ny = texto_ny.split('-');
             let text_n = texto_n.split('-');
 
             serviceRequestUrl += '&q=(';
