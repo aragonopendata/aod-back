@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     restart: always
     networks:
-      - ckan-aod_default
+      - infraestructura_opendata
     env_file:
       - .env
 #    environment:
@@ -17,9 +17,10 @@ services:
 #    command: tail -f /dev/null
   postgres:
     image: postgres:15
+    hostname: postgres-aod-back
     restart: always
     networks:
-      - ckan-aod_default
+      - infraestructura_opendata
     environment:
         POSTGRES_USER: $DB_USER
         POSTGRES_PASSWORD: $DB_PASSWORD
@@ -28,6 +29,5 @@ services:
         - "$POSTGRES_DATA_PATH:/var/lib/postgresql/data"
 
 networks:
-  ckan-aod_default:
-    name: ckan-aod_default
+  infraestructura_opendata:
     external: true
