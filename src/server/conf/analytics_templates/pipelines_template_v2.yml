@@ -2,5 +2,5 @@
  - pipeline.id: "{{this.id_logstash}}"
    pipeline.batch.size: 1
    pipeline.workers: 1
-   path.config: "/data/apps/LogStash/LogStashPipelines/{{this.id_logstash}}.conf"
+   path.config: "/usr/share/logstash/pipeline/{{this.id_logstash}}.conf"
 {{/each}}
