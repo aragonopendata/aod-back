@@ -833,11 +833,16 @@ class DatasetController {
 
     getCsvFileFromPx = (req, res) => {
         try {
+            let fileName;
+	    let serviceRequestUrl;
+
             if (req.params.resourceName) {
                 let resource = req.params.resourceName;
-                let fileName = resource.substring(resource.lastIndexOf('-')+1).replace(new RegExp('.px', 'g'), '.csv');
+		logger.debug('logger debug: resourceName recogido: ' + req.params.resourceName);
+                fileName = resource.substring(resource.lastIndexOf('-')+1).replace(new RegExp('.px', 'g'), '.csv');
                 resource = resource.replace(new RegExp('-', 'g'), '/');
-                let serviceRequestUrl = constants.API_URL_IAEST_PX_FILES + resource;
+                serviceRequestUrl = constants.API_URL_IAEST_PX_FILES + resource;
+		logger.debug('petición URL creada: ' + serviceRequestUrl);
             } else{
                 res.json({'error': 'No existe archivo'});
             }
@@ -847,21 +852,35 @@ class DatasetController {
 
             const httpRequestOptions = {
                 url: serviceRequestUrl,
+		logger.debug('url de la petición: ' + serviceRequestUrl);
                 method: constants.HTTP_REQUEST_METHOD_GET,
                 headers: {
                     'User-Agent': constants.HTTP_REQUEST_HEADER_USER_AGENT_NODE_SERVER_REQUEST,
                 },
                 encoding: null
             };
+	    
             request(httpRequestOptions, function (err, response, body) {
+		logger.debug('httpRequestOptions: ' + httpRequestOptions);
                 if (err) {
                     utils.errorHandler(err, res, serviceName);
+
+			//modificación debugger
+	            logger.error('Error in HTTP request: ' + err.message);
+       	            return res.status(500).json({ error: 'Error al realizar la solicitud' });
                 }
                 if (response) {
+			logger.debug('response: ' + response);
                     if (response.statusCode === 200) {
                         const buffer = iconv.decode(Buffer.from(body), 'iso-8859-1');
                         res.setHeader('Content-disposition', 'attachment; filename=' + fileName);
                         const data = parsePXFile(buffer);
+
+			// Contenido data
+	                logger.debug('Data completo:' + data);
+		        logger.debug('Encabezados (data[0]):' + data[0]);
+		        logger.debug('Filas (data[1]):' + data[1]);
+
                         const writer = csvWriter({headers: data[0]})
                         writer.pipe(res);
                         data[1].forEach(fila => {
