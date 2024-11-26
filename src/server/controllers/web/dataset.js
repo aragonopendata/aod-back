@@ -833,11 +833,14 @@ class DatasetController {
 
     getCsvFileFromPx = (req, res) => {
         try {
-            if (req.params.resourceName) {
+            let serviceRequestUrl;
+            let fileName;
+
+	    if (req.params.resourceName) {
                 let resource = req.params.resourceName;
-                let fileName = resource.substring(resource.lastIndexOf('-')+1).replace(new RegExp('.px', 'g'), '.csv');
+                fileName = resource.substring(resource.lastIndexOf('-')+1).replace(new RegExp('.px', 'g'), '.csv');
                 resource = resource.replace(new RegExp('-', 'g'), '/');
-                let serviceRequestUrl = constants.API_URL_IAEST_PX_FILES + resource;
+                serviceRequestUrl = constants.API_URL_IAEST_PX_FILES + resource;
             } else{
                 res.json({'error': 'No existe archivo'});
             }

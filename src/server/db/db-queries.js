@@ -202,13 +202,13 @@ exports.DB_FOCUS_GET_HISTORY_BY_URL = 'SELECT id, state, title, description, id_
 
 exports.DB_FOCUS_GET_HISTORY_BY_TOKEN = 'SELECT id, state, title, description, id_reference, main_category, secondary_categories, create_date, update_date, token, email FROM focus.histories WHERE token = $1'; //mirar si queremos email o no. De momento no
 
-exports.DB_FOCUS_GET_HISTORIES_USER_BY_STATE_AND_SEARCH = 'SELECT id, url, state, title, description, id_reference, main_category, secondary_categories, create_date, update_date FROM focus.histories WHERE state= $1 AND LOWER(title) LIKE $2';
+exports.DB_FOCUS_GET_HISTORIES_USER_BY_STATE_AND_SEARCH = 'SELECT id, url, state, title, description, id_reference, main_category, secondary_categories, create_date, update_date FROM focus.histories WHERE state= $1 AND LOWER(title) LIKE $2 ORDER by update_date DESC';
 
 exports.DB_FOCUS_UPDATE_MAIL_HISTORIES_USER = 'UPDATE focus.histories SET email=COALESCE($1, email) WHERE id = $2';
 
 exports.DB_FOCUS_GET_MAIL_HISTORIES_USER = 'SELECT email  FROM focus.histories WHERE id = $1';
 
-exports.DB_FOCUS_GET_HISTORIES_USER_BY_STATE_AND_SEARCH_AND_CATEGORY = 'SELECT id, url, state, title, description, id_reference, main_category, secondary_categories, create_date, update_date FROM focus.histories WHERE state= $1 AND LOWER(title) LIKE $2  AND (main_category= $3 OR $3=ANY(secondary_categories))';
+exports.DB_FOCUS_GET_HISTORIES_USER_BY_STATE_AND_SEARCH_AND_CATEGORY = 'SELECT id, url, state, title, description, id_reference, main_category, secondary_categories, create_date, update_date FROM focus.histories WHERE state= $1 AND LOWER(title) LIKE $2  AND (main_category= $3 OR $3=ANY(secondary_categories)) ORDER by update_date DESC';
 
 exports.DB_FOCUS_GET_HISTORIES_ADMIN_PAGINATE = "SELECT id, url, state, title, description, email, id_reference, main_category, secondary_categories, create_date, update_date, token FROM focus.histories WHERE LOWER(title) LIKE $1 AND state != 5";
 
