@@ -10,9 +10,7 @@ const constants = require('../util/constants');
 const db = require('../db/db-connection');
 const pool = db.getPool();
 //LOG SETTINGS
-const logConfig = require('../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require("../conf/logger");
 
 //Authenticate 
 router.post(constants.API_URL_AUTHENTICATE, function (req, res, next) {

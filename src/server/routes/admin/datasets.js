@@ -144,8 +144,9 @@ router.post(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
     try {
         var dataset = req.body;
         logger.notice('Dataset que llega desde request: ' + JSON.stringify(dataset));
-        //0. CHECKING REQUEST PARAMETERS
-        if (dataset.name != ''&& dataset.private != undefined) {
+        //0. CRAETE DATASET AND CHECKING REQUEST PARAMETERS
+        dataset = createAndCleanDatasetDict(dataset);
+        if (dataset) {
             let apiKey = utils.getApiKey(req.get('Authorization'));
             if (apiKey) {
                 logger.info('API KEY del usuario recuperada: ' + apiKey);
@@ -212,8 +213,9 @@ router.put(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
     try {
         var dataset = req.body;
         logger.notice('Dataset que llega desde request: ' + JSON.stringify(dataset));
-        //0. CHECKING REQUEST PARAMETERS
-        if (dataset.name != ''&& dataset.private != undefined) {
+        //0. CRAETE DATASET AND CHECKING REQUEST PARAMETERS
+        dataset = createAndCleanDatasetDict(dataset);
+        if (dataset) {
             let apiKey = utils.getApiKey(req.get('Authorization'));
             if (apiKey) {
                 logger.info('API KEY del usuario recuperada: ' + apiKey);
@@ -673,61 +675,12 @@ var getUserPermissions = function checkUserPermissions(userId, userName) {
 var insertDatasetInCkan = function insertDatasetInCkan(apiKey, dataset) {
     return new Promise((resolve, reject) => {
         try {
-            logger.debug('Insertando dataset en CKAN');
-            //Mandatory fields
-            var create_dataset_post_data = {
-                'name': dataset.name,
-                'private': dataset.private
-            };
-          
-            //Optional fields
-            if (dataset.title != '') {
-                create_dataset_post_data.title = dataset.title;
-            }
-            if (dataset.author != '') {
-                create_dataset_post_data.author = dataset.author;
-            }
-            if (dataset.author_email != '') {
-                create_dataset_post_data.author_email = dataset.author_email;
-            }
-            if (dataset.notes != '') {
-                create_dataset_post_data.notes = dataset.notes;
-            }
-            if (dataset.url != '') {
-                create_dataset_post_data.url = dataset.url;
-            }
-            if (dataset.version != '') {
-                create_dataset_post_data.version = dataset.version;
-            }
-            if (dataset.state != '') {
-                create_dataset_post_data.state = dataset.state;
-            }
-            if (dataset.extras != '') {
-                create_dataset_post_data.extras = dataset.extras;
-            }
-            if (dataset.tags != '') {
-                create_dataset_post_data.tags = dataset.tags;
-            }  
-            if (dataset.license_id != '') {
-                create_dataset_post_data.license_id = dataset.license_id;
-            }
-            if (dataset.license_title != '') {
-                create_dataset_post_data.license_title = dataset.license_title;
-            }
-            if (dataset.license_url != '') {
-                create_dataset_post_data.license_url = dataset.license_url;
-            }
-            if (dataset.groups != '') {
-                create_dataset_post_data.groups = dataset.groups;
-            }
-            if (dataset.owner_org != '') {
-                create_dataset_post_data.owner_org = dataset.owner_org;
-            }     
+            logger.debug('Insertando dataset en CKAN');     
             
             var httpRequestOptions = {
                 url: constants.CKAN_API_BASE_URL + constants.CKAN_URL_PATH_DATASET_CREATE,
                 method: constants.HTTP_REQUEST_METHOD_POST,
-                body: create_dataset_post_data,
+                body: dataset,
                 json: true,
                 headers: {
                     'Content-Type': constants.HTTP_REQUEST_HEADER_CONTENT_TYPE_JSON,
@@ -736,7 +689,7 @@ var insertDatasetInCkan = function insertDatasetInCkan(apiKey, dataset) {
                 }
             };
 
-            logger.info('Datos a enviar: ' + JSON.stringify(create_dataset_post_data));
+            logger.info('Datos a enviar: ' + JSON.stringify(dataset));
             logger.info('Configuración llamada POST: ' + JSON.stringify(httpRequestOptions));
 
             request(httpRequestOptions, function (err, res, body) {
@@ -948,7 +901,7 @@ var insertResourceInCKAN = function insertResourceInCKAN(apiKey, clientRequest) 
 }
 
 /** UPDATE RESOURCE IN CKAN FUNCTION */
-var updateResourceInCkan = function updateDatasetInCkan(apiKey, resource, file) {
+var updateResourceInCkan = function updateResourceInCkan(apiKey, resource, file) {
     return new Promise((resolve, reject) => {
         try {
             logger.debug('Actualizando recurso en CKAN');
@@ -1062,6 +1015,79 @@ var deleteResourceInCKAN = function deleteResourceInCKAN(apiKey, resource_id) {
             console.error(error);
         }
     });
+}
+
+var createAndCleanDatasetDict = function createAndCleanDatasetDict(dataset) {
+    try {
+        var dataset_dict = {
+            "acces_rights": "",
+            "applicable_legislation": [""],
+            "author": null,
+            "author_email": null,
+            "conforms_to": [""],
+            "contact_email": "",
+            "contact_url": "",
+            "creator_user_id": "",
+            "frequency": "nunca",
+            "hvd_category": "",
+            "isopen": true,
+            "language": "es",
+            "license_id": "",
+            "license_title": "",
+            "license_url": "",
+            "maintainer": null,
+            "maintainer_email": null,
+            "metadata_created": "",
+            "metadata_modified": "",
+            "name": "",
+            "notes": "",
+            "num_resources": 0,
+            "num_tags": 1,
+            "organization": {
+                "id": "",
+                "name": "",
+                "title": "",
+                "type": "organization",
+                "description": "",
+                "image_url": "",
+                "created": "",
+                "is_organization": true,
+                "approval_status": "",
+                "state": ""
+            },
+            "owner_org": "",
+            "private": false,
+            "related_resources": [""],
+            "spatial": "spain",
+            "spatial_resolution": "",
+            "state": "active",
+            "tags.name": "",
+            "temporal": ",",
+            "associated_documentation": "",
+            "title": "",
+            "type": "dataset",
+            "url": null,
+            "version": 1,
+            "extras": [{}],
+            "tags": [{}],
+            "groups": [],
+            "relationships_as_subject": [],
+            "relationships_as_object": []
+        };
+
+        for (const metadata in dataset_dict) {
+            if (metadata in dataset) {
+                dataset_dict.metadata = dataset.metadata
+            } else {
+                return false
+            }
+        }
+
+        return dataset_dict
+
+    } catch (error){
+        reject(error)
+    }
 }
 
 module.exports = router;
