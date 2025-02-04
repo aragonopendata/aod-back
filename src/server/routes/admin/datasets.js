@@ -215,7 +215,7 @@ router.put(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
         logger.notice('Dataset que llega desde request: ' + JSON.stringify(dataset));
         //0. CRAETE DATASET AND CHECKING REQUEST PARAMETERS
         dataset = createAndCleanDatasetDict(dataset);
-        if (dataset) {
+	if (dataset) {
             let apiKey = utils.getApiKey(req.get('Authorization'));
             if (apiKey) {
                 logger.info('API KEY del usuario recuperada: ' + apiKey);
@@ -1027,41 +1027,22 @@ var createAndCleanDatasetDict = function createAndCleanDatasetDict(dataset) {
             "conforms_to": [""],
             "contact_email": "",
             "contact_url": "",
-            "creator_user_id": "",
             "frequency": "nunca",
             "hvd_category": "",
             "isopen": true,
             "language": "es",
             "license_id": "",
-            "license_title": "",
-            "license_url": "",
             "maintainer": null,
             "maintainer_email": null,
-            "metadata_created": "",
-            "metadata_modified": "",
             "name": "",
             "notes": "",
-            "num_resources": 0,
-            "num_tags": 1,
-            "organization": {
-                "id": "",
-                "name": "",
-                "title": "",
-                "type": "organization",
-                "description": "",
-                "image_url": "",
-                "created": "",
-                "is_organization": true,
-                "approval_status": "",
-                "state": ""
-            },
             "owner_org": "",
             "private": false,
             "related_resources": [""],
             "spatial": "spain",
             "spatial_resolution": "",
             "state": "active",
-            "tags.name": "",
+	    "tags.name": "",
             "temporal": ",",
             "associated_documentation": "",
             "title": "",
@@ -1069,7 +1050,6 @@ var createAndCleanDatasetDict = function createAndCleanDatasetDict(dataset) {
             "url": null,
             "version": 1,
             "extras": [{}],
-            "tags": [{}],
             "groups": [],
             "relationships_as_subject": [],
             "relationships_as_object": []
@@ -1077,12 +1057,12 @@ var createAndCleanDatasetDict = function createAndCleanDatasetDict(dataset) {
 
         for (const metadata in dataset_dict) {
             if (metadata in dataset) {
-                dataset_dict.metadata = dataset.metadata
+                dataset_dict[metadata] = dataset[metadata]
             } else {
                 return false
             }
         }
-
+	
         return dataset_dict
 
     } catch (error){
