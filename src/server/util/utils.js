@@ -1,8 +1,6 @@
 const constants = require('./constants');
 //LOG SETTINGS
-const logConfig = require('../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require("../conf/logger");
 
 module.exports = {
     getRequestCommonParams: function (req) {

@@ -2,9 +2,7 @@ var jwt = require('jsonwebtoken');
 var fs = require('fs');
 const constants = require('./constants');
 //LOG SETTINGS
-const logConfig = require('../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require("../conf/logger");
 
 module.exports = function (req, res, next) {
     //Authorization header: API_KEY:JWT_Token

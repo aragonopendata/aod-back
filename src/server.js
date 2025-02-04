@@ -8,10 +8,7 @@ const session = require('express-session');
 //CORS USE
 const corsHeaders = require('./server/conf/cors-headers');
 //LOG SETTINGS
-const logConfig = require('./server/conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-// const logger = require('js-logging').dailyFile([loggerSettings]);
-const logger = require('js-logging').console(loggerSettings);
+const logger = require("./server/conf/logger");
 
 // API ROUTES
 const datasets = require('./server/routes/web/datasets');

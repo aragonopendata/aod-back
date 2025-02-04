@@ -8,9 +8,7 @@ const pool = db.getPool();
 // FormData for send form-data
 const format = require('pg-format');
 //LOG SETTINGS
-const logConfig = require('../conf/log-conf');
-const loggerSettings = logConfig.getLogSettings();
-const logger = require('js-logging').dailyFile([loggerSettings]);
+const logger = require("../conf/logger");
 
 
 
