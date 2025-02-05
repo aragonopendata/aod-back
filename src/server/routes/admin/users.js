@@ -208,43 +208,57 @@ router.post('/users', function (req, res, next) {
                     logger.info('Respuesta de CKAN: ' + insertCkanResponse.success);
                     if (insertCkanResponse && insertCkanResponse != null && insertCkanResponse.success) {
                         logger.info('Usuario insertado: ' + insertCkanResponse.result.fullname);
-                        //3. INSERTING USER IN AOD_MANAGER AND ASSIGNING PERMISSIONS
-                        insertUserInManager(user, insertCkanResponse.result).then(userId => {
-                            logger.info('Usuario asociado a rol: ' + userId);
-                            // GET CKAN GROUPS
-                            getCkanGroups(apiKey).then(groupsResponse => {
-                                if (groupsResponse) {
-                                    setGroupsToUser(apiKey, user, groupsResponse).then(setGroupsToUserResponse => {
-                                        if (setGroupsToUserResponse) {
-                                            setOrganizationToUser(apiKey, user, userOrganization).then(setOrganizationToUserResponse => {
-                                                if(setOrganizationToUserResponse){
-                                                    res.json({
-                                                        'status': constants.REQUEST_REQUEST_OK,
-                                                        'success': true,
-                                                        'result': 'ALTA DE USUARIOS - Usuario dado de alta correctamente'
-                                                    });
-                                                    logger.info('ALTA DE USUARIOS - Usuario dado de alta correctamente')
-                                                }else{
-                                                    logger.error('ALTA DE USUARIOS - No se ha podido asociar el usuario a la organización');
+                        //3. GETTING USER CKAN TOKEN
+                        getNewCkanToken(apiKey, user).then(ckanTokenResponse => {
+                            if (ckanTokenResponse && ckanTokenResponse != null && ckanTokenResponse.success) {
+                                logger.info('Token recibido: ' + ckanTokenResponse.result.token);
+                                //4. INSERTING USER IN AOD_MANAGER AND ASSIGNING PERMISSIONS
+                                insertUserInManager(user, ckanTokenResponse.result).then(userId => {
+                                    logger.info('Usuario asociado a rol: ' + userId);
+                                    // GET CKAN GROUPS
+                                    getCkanGroups(apiKey).then(groupsResponse => {
+                                        if (groupsResponse) {
+                                            setGroupsToUser(apiKey, user, groupsResponse).then(setGroupsToUserResponse => {
+                                                if (setGroupsToUserResponse) {
+                                                    setOrganizationToUser(apiKey, user, userOrganization).then(setOrganizationToUserResponse => {
+                                                        if(setOrganizationToUserResponse){
+                                                            res.json({
+                                                                'status': constants.REQUEST_REQUEST_OK,
+                                                                'success': true,
+                                                                'result': 'ALTA DE USUARIOS - Usuario dado de alta correctamente'
+                                                            });
+                                                            logger.info('ALTA DE USUARIOS - Usuario dado de alta correctamente')
+                                                        }else{
+                                                            logger.error('ALTA DE USUARIOS - No se ha podido asociar el usuario a la organización');
+                                                            res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - No se ha podido insertar el usuario en base de datos' });
+                                                            return;
+                                                        }
+                                                    })
+                                                } else {
+                                                    logger.error('ALTA DE USUARIOS - No se ha podido insertar el usuario en base de datos');
                                                     res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - No se ha podido insertar el usuario en base de datos' });
                                                     return;
                                                 }
                                             })
                                         } else {
-                                            logger.error('ALTA DE USUARIOS - No se ha podido insertar el usuario en base de datos');
-                                            res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - No se ha podido insertar el usuario en base de datos' });
+                                            logger.error('ALTA DE USUARIOS - No se ha podido obtener la lista de temas');
+                                            res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - No se ha podido obtener la lista de temas' });
                                             return;
                                         }
                                     })
-                                } else {
-                                    logger.error('ALTA DE USUARIOS - No se ha podido obtener la lista de temas');
-                                    res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - No se ha podido obtener la lista de temas' });
+                                }).catch(error => {
+                                    logger.error('ALTA DE USUARIOS - Error al insertar al usuario en base de datos: ', error);
+                                    res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - Error al insertar al usuario en base de datos' });
                                     return;
-                                }
-                            })
+                                });
+                            } else {
+                                logger.error('ALTA DE USUARIOS - Parámetros incorrectos');
+                                res.json({ 'status': constants.REQUEST_ERROR_BAD_DATA, 'error': 'ALTA DE USUARIOS - Parámetros incorrectos' });
+                                return;
+                            }
                         }).catch(error => {
-                            logger.error('ALTA DE USUARIOS - Error al insertar al usuario en base de datos: ', error);
-                            res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - Error al insertar al usuario en base de datos' });
+                            logger.error('ALTA DE USUARIOS - Error al crear el token de ckan: ', error);
+                            res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE USUARIOS - Error al crear el token de ckan' });
                             return;
                         });
                     } else {
@@ -589,10 +603,10 @@ var insertUserInCkan = function insertUserInCkan(userApiKey, user) {
     });
 }
 
-var insertUserInManager = function insertUserInManager(user, insertCkanResponse) {
+var insertUserInManager = function insertUserInManager(user, ckanTokenResponse) {
     return new Promise((resolve, reject) => {
         try {
-            var apikey = insertCkanResponse.apikey;
+            var apikey = ckanTokenResponse.token;
             var password = user.password = SHA256(user.password).toString(CryptoJS.enc.Base64);
             var userRole = user.role;
             var fullname = user.fullname != null ? user.fullname : '';
@@ -1039,6 +1053,52 @@ var deleteUserInManager = function deleteUserInManager(user) {
             });
         } catch (error) {
             logger.error('Error borrando usuario en base de datos:', error);
+            reject(error);
+        }
+    });
+}
+
+var getNewCkanToken = function getNewCkanToken(userApiKey, user) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Get new CKAN Token
+            var new_token_post_data = {
+                'user': user.name,
+                'name': 'aod-back'
+            };
+
+            if (user.tokenname != '') {
+                new_token_post_data.name = user.tokenname;
+            };
+
+            var httpRequestOptions = {
+                url: constants.CKAN_API_BASE_URL + constants.CKAN_URL_PATH_USER_TOKEN_CREATE,
+                method: constants.HTTP_REQUEST_METHOD_POST,
+                body: new_token_post_data,
+                json: true,
+                headers: {
+                    'Content-Type': constants.HTTP_REQUEST_HEADER_CONTENT_TYPE_JSON,
+                    'User-Agent': constants.HTTP_REQUEST_HEADER_USER_AGENT_NODE_SERVER_REQUEST,
+                    'Authorization': userApiKey
+                }
+            };
+
+            request(httpRequestOptions, function (err, res, body) {
+                if (err) {
+                    reject(err);
+                }
+                if (res) {
+                    if (res.body.success) {
+                        resolve(res.body);
+                    } else {
+                        reject(JSON.stringify(res.statusCode) + ' - ' + JSON.stringify(res.statusMessage));
+                    }
+                } else {
+                    reject('Respuesta nula');
+                }
+            });
+        } catch (error) {
+            logger.error('Error obteniendo token de ckan:', error);
             reject(error);
         }
     });

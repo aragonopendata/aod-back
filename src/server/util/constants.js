@@ -125,6 +125,7 @@ exports.CKAN_URL_PATH_USER_CREATE = 'user_create';
 exports.CKAN_URL_PATH_USER_UPDATE = 'user_update';
 exports.CKAN_URL_PATH_USER_DELETE = 'user_delete';
 exports.CKAN_URL_PATH_USER_SHOW = 'user_show';
+exports.CKAN_URL_PATH_USER_TOKEN_CREATE = 'api_token_create';
 
 exports.CKAN_URL_PATH_GROUP_LIST = 'group_list';
 exports.CKAN_URL_PATH_GROUP_MEMBER_CREATE = 'group_member_create';

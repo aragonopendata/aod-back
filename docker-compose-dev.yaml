@@ -1,0 +1,35 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    # networks:
+    #   - infraestructura_opendata
+    env_file:
+      - .env
+#    environment:
+#      - DEBUG=express:*
+    ports:
+      - "4200:4200"
+    volumes:
+      - "$SERVER_LOG_PATH:/app/logs"
+      # - /data/apps/aod-logstash/pipelines:/data/apps/LogStash/LogStashPipelines
+      # - /data/apps/aod-logstash/conf:/data/apps/LogStash/LogStashApp/config
+#    command: tail -f /dev/null
+  postgres:
+    image: postgres:15
+    hostname: postgres-aod-back
+    restart: always
+    # networks:
+    #   - infraestructura_opendata
+    environment:
+        POSTGRES_USER: $DB_USER
+        POSTGRES_PASSWORD: $DB_PASSWORD
+        POSTGRES_DB: $DB_NAME
+    volumes:
+        - "$POSTGRES_DATA_PATH:/var/lib/postgresql/data"
+
+# networks:
+#   infraestructura_opendata:
+#     external: true
