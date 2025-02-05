@@ -33,7 +33,7 @@ let logConfig = {
     // e.g. the format yyyymmdd will generate every day a new file, 
     // the format yyyymmdd_HH will generate 
     // every hour a new file and so on. 
-    path: process.env.APP_LOG_PATH || '/app/logs/',
+    path: process.env.APP_LOG_PATH || '/app/logs',
     filename: 'aod-api',
     filenameDateFormat: 'yyyymmdd',
     pathFormat: '${path}/${filename}_${filenameDateFormat}.log',

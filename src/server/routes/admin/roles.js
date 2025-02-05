@@ -42,7 +42,7 @@ router.get('/roles' + '/:roleId', function (req, res, next) {
         const query = {
             text: dbQueries.DB_ADMIN_GET_ROLE,
             rowMode: constants.SQL_RESULSET_FORMAT_JSON,
-            values: [req.params.datasetName]
+            values: [req.params.roleId]
         };
 
         pool.on('error', (error, client) => {
