@@ -1058,6 +1058,7 @@ var deleteUserInManager = function deleteUserInManager(user) {
     });
 }
 
+<<<<<<< HEAD
 var getNewCkanToken = function getNewCkanToken(userApiKey, user) {
     return new Promise((resolve, reject) => {
         try {
@@ -1105,3 +1106,6 @@ var getNewCkanToken = function getNewCkanToken(userApiKey, user) {
 }
 
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> 1a56ebdff281eafacc46d60d87db08d1220a17f5
