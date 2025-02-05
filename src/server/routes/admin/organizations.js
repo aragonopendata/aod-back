@@ -482,7 +482,7 @@ var deleteOrganizationInCkan = function deleteOrganizationInCkan(apiKey, organiz
                 'id': organization.name
             };
             var httpRequestOptions = {
-                url: 'http://localhost:5000/api/action/' + constants.CKAN_URL_PATH_ORGANIZATION_PURGE,
+                url: constants.CKAN_API_BASE_URL + constants.CKAN_URL_PATH_ORGANIZATION_PURGE,
                 method: constants.HTTP_REQUEST_METHOD_POST,
                 body: delete_organization_post_data,
                 json: true,
