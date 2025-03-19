@@ -9,7 +9,6 @@ auth: {
     username: constants.ELASTIC_USER,
     password: constants.ELASTIC_PASS
 }})
-//var gapiUrl = 'http://localhost:50053';
 var ga4piUrl = 'http://'+process.env.GAPI4_HOST+':'+process.env.GAPI4_PORT;
 module.exports = {
     createPortal: function (id){
@@ -107,10 +106,10 @@ module.exports = {
             await countries_urchin(portal, reloadDate);
         }
         if (portal.type == 'analytics') {
-            await browsers_ga(portal, reloadDate);
-            await pages_ga(portal, reloadDate);
-            await files_ga(portal, reloadDate);
-            await countries_ga(portal, reloadDate);
+            await browsers_ga4(portal, reloadDate);
+            await pages_ga4(portal, reloadDate);
+            await files_ga4(portal, reloadDate);
+            await countries_ga4(portal, reloadDate);
         }
         if (portal.type == 'analytics_GA4') {
             await browsers_ga4(portal, reloadDate);
