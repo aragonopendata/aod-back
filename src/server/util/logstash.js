@@ -72,7 +72,7 @@ module.exports = {
             try {
                 var name = portal.portal_name;
                 /*var type = portal.type;*/
-                var type = "analytics_GA4";
+                var type = "analytics";
                 var view = portal.view;
                 var delay = portal.delay;
                 var url = portal.url;

@@ -856,15 +856,21 @@ class DatasetController {
                 },
                 encoding: null
             };
+	    logger.debug('httpRequestOptions -----------> ' + JSON.stringify(httpRequestOptions));
             request(httpRequestOptions, function (err, response, body) {
                 if (err) {
                     utils.errorHandler(err, res, serviceName);
+	            logger.debug('errorHandler aquí ------------> ' + JSON.stringify(err));
                 }
                 if (response) {
+		    logger.debug('response aquí ------------------> ' + JSON.stringify(response));
                     if (response.statusCode === 200) {
+
                         const buffer = iconv.decode(Buffer.from(body), 'iso-8859-1');
+			logger.debug('he guardado en buffer');
                         res.setHeader('Content-disposition', 'attachment; filename=' + fileName);
                         const data = parsePXFile(buffer);
+			logger.debug('he guardado en data');
                         const writer = csvWriter({headers: data[0]})
                         writer.pipe(res);
                         data[1].forEach(fila => {
@@ -967,188 +973,235 @@ class DatasetController {
 }
 
 /**********************************************************************************/
+
 function parsePXFile(data) {
+  data = data.replace(/\s+/g, ' ').trim();
+
+  // Detectamos si existe la sección HEADING
+  const hasHeading = !!data.match(/HEADING=[.\s\S]*?;/);
+
+  if (hasHeading) {
+    // RUTA ORIGINAL (con HEADING)
     let headersNames = [];
     const headersOrder = [];
     let labelsNames = [];
     const values = [];
     let dataTable = [];
     let headerTable = [];
-    let parse = 'init';
-    data = data.replace(/\s+/g, ' ').trim();
-
+    let parse;
+  
     // Prepare the Headers Names
     parse = data.match(/HEADING=[.\s\S]*?;/);
-    parse = parse[0]
-        .split('=')
-        .pop()
-        .slice(0, -1);
+    if (!parse) {
+      console.error("Error al procesar HEADING.");
+      return null;
+    }
+    parse = parse[0].split('=').pop().slice(0, -1);
     headersNames = parse
-        .replace(/",\s?\S?"/g, '"############"')
-        .split('############');
+      .replace(/",\s?\S?"/g, '"############"')
+      .split('############');
     headersNames.forEach((element, index) => {
-        headersNames[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
+      headersNames[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
     });
-
+  
     // Prepare the Headers Names of the labels/stub
     parse = data.match(/STUB=[.\s\S]*?;/);
-    parse = parse[0]
-        .split('=')
-        .pop()
-        .slice(0, -1);
-    labelsNames = parse
-        .replace(/"\s?\S?"/g, '"############"')
-        .split('############');
-
-    labelsNames.forEach((element, index) => {
-        labelsNames[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
-    });
-
-    // GET all Headers AND Descriptions of the px file
-    while (parse != null) {
-        parse = data.match(/VALUES\(.*?\)=[.\s\S]*?";/);
-        if (parse != null) {
-            let parse2 = parse;
-            parse = parse[0].slice(7, -1);
-            parse2 = parse2[0].slice(8, -1);
-
-            //let aux3 = parse.match(/[.\s\S]*?\)/).toString();
-            let aux3 = parse2.match(/[.\s\S]*?\=/).toString();
-            aux3 = aux3.slice(0, aux3.length - 3);
-            //aux3 = aux3.slice(0, aux3.length - 1);
-            aux3 = aux3.replace(/"/g, '').replace(/^\s+/g, '');
-            headersOrder.push(aux3);
-            parse = parse
-                .split('=')
-                .pop()
-                .slice(0, -1);
-
-            const aux2 = parse
-                .replace(/",\s?\S?"/g, '"############"')
-                .split('############');
-            aux2.forEach((element, index) => {
-                aux2[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
-            });
-            values.push(aux2);
-
-            data = data.split(parse).pop();
-        }
+    if (!parse) {
+      console.error("No se encontró STUB en el fichero PX.");
+      return null;
     }
-
-    // Prepare Table Data
+    parse = parse[0].split('=').pop().slice(0, -1);
+    labelsNames = parse
+      .replace(/"\s?\S?"/g, '"############"')
+      .split('############');
+    labelsNames.forEach((element, index) => {
+      labelsNames[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
+    });
+  
+    // GET all Headers AND Descriptions of the px file (VALUES)
+    while (true) {
+      parse = data.match(/VALUES\(.*?\)=[.\s\S]*?";/);
+      if (parse != null) {
+        let parse2 = parse[0].slice(8, -1); // quitar "VALUES(" y el último caracter
+        // Extraer el nombre de la dimensión (antes del '=')
+        let aux3 = parse2.match(/[.\s\S]*?\=/).toString();
+        aux3 = aux3.slice(0, aux3.length - 3).replace(/"/g, '').trim();
+        headersOrder.push(aux3);
+        // Extraer los valores (después del '=')
+        parse = parse[0].slice(7, -1);
+        parse = parse.split('=').pop().slice(0, -1);
+  
+        const aux2 = parse
+          .replace(/",\s?\S?"/g, '"############"')
+          .split('############');
+        aux2.forEach((element, index) => {
+          aux2[index] = element.replace(/"/g, '').replace(/^\s+/g, '');
+        });
+        values.push(aux2);
+  
+        data = data.split(parse).pop();
+      } else {
+        break;
+      }
+    }
+  
+    // Prepare Table Data from DATA section
     parse = data.match(/DATA=[.\s\S]*?;/);
-    parse = parse[0]
-        .split('= ')
-        .pop()
-        .slice(0, -1);
+    if (!parse) {
+      console.error("No se encontró DATA en el fichero PX.");
+      return null;
+    }
+    parse = parse[0].split('= ').pop().slice(0, -1);
     const auxDataTable2 = parse.split(' ');
-
     auxDataTable2.forEach((element, index) => {
-        if (element === '"."') {
-            auxDataTable2[index] = null;
-        }
+      if (element === '"."') {
+        auxDataTable2[index] = null;
+      }
     });
-
     const auxDataTable = auxDataTable2.map(function(x) {
-        const n = Number(x);
-        const decimals = contDec(n, x);
-        const fullN = parseFloat(x).toFixed(decimals);
-
-        if (isNaN(fullN)) {
-            return null;
-        } else {
-            return fullN;
-        }
+      const n = Number(x);
+      const decimals = contDec(n, x);
+      const fullN = parseFloat(x).toFixed(decimals);
+      return isNaN(fullN) ? null : fullN;
     });
-
+  
     ///////////////////////////////////////////////////////////
     // Duplicate arrays to match the superior headers and add that header
-
-    // Get the headers array pointers
     const pointersHeaders = [];
-
-    headersNames.reverse().forEach(element => {
-        const indexHeader = headersOrder.findIndex(dato => dato === element);
-
-        pointersHeaders.push(values[indexHeader]);
+    headersNames.slice().reverse().forEach(element => {
+      const indexHeader = headersOrder.findIndex(dato => dato === element);
+      pointersHeaders.push(values[indexHeader]);
     });
-
+  
     pointersHeaders.reverse().forEach((element, index) => {
-        if (index + 1 < pointersHeaders.length) {
-            const clone = pointersHeaders[index + 1].slice(0);
-            element.forEach((e, index2) => {
-                if (index2 === 0) {
-                    pointersHeaders[index + 1] = [];
-                }
-                pointersHeaders[index + 1] = pointersHeaders[index + 1].concat(
-                    clone.map(z => e + ' ' + z)
-                );
-            });
-        }
+      if (index + 1 < pointersHeaders.length) {
+        const clone = pointersHeaders[index + 1].slice(0);
+        element.forEach((e, index2) => {
+          if (index2 === 0) {
+            pointersHeaders[index + 1] = [];
+          }
+          pointersHeaders[index + 1] = pointersHeaders[index + 1].concat(
+            clone.map(z => e + ' ' + z)
+          );
+        });
+      }
     });
     headerTable = pointersHeaders[pointersHeaders.length - 1];
     ///////////////////////////////////////////////////////////
-
-    // Indicate where to cut on the array and create the respective chucks
+  
+    // Partition the data array using headerTable length
     dataTable = chuck(auxDataTable, headerTable.length);
     if (
-        dataTable[dataTable.length - 1][0] == null &&
-        dataTable[dataTable.length - 1].length <= 1
+      dataTable[dataTable.length - 1][0] == null &&
+      dataTable[dataTable.length - 1].length <= 1
     ) {
-        dataTable.pop();
+      dataTable.pop();
     }
-
+  
     ///////////////////////////////////////////////////////////
     // Prepare the Labels/STUB
-
-    // Get the labels array pointers
     const pointersLabels = [];
     const indexLabels = [];
-
     labelsNames.forEach(element => {
-        const indexHeader = headersOrder.findIndex(dato => dato === element);
-
-        pointersLabels.push(values[indexHeader]);
-        indexLabels.push(indexHeader);
+      const indexHeader = headersOrder.findIndex(dato => dato === element);
+      pointersLabels.push(values[indexHeader]);
+      indexLabels.push(indexHeader);
     });
-
     pointersLabels.forEach((element, index) => {
-        if (index + 1 < pointersLabels.length) {
-            const auxiliar = [];
-            element.forEach(e => {
-                for (let i = 0; i < pointersLabels[index + 1].length; i++) {
-                    auxiliar.push(e);
-                }
-            });
-            pointersLabels[index] = auxiliar;
-        } else {
-            const clone = element.slice(0);
-            let auxiliar = [];
-            for (
-                let indice = 0;
-                indice < Math.floor(dataTable.length / clone.length);
-                indice++
-            ) {
-                auxiliar = auxiliar.concat(clone);
-            }
-            pointersLabels[index] = auxiliar;
-        }
-    });
-
-    indexLabels.reverse();
-
-    // Add the ROW labels to the table
-    pointersLabels.reverse().forEach((element, index) => {
-        headerTable.unshift(labelsNames[indexLabels[index]]);
-        element.forEach((e, i) => {
-            if (dataTable[i] !== undefined) {
-                dataTable[i].unshift(e);
-            }
+      if (index + 1 < pointersLabels.length) {
+        const auxiliar = [];
+        element.forEach(e => {
+          for (let i = 0; i < pointersLabels[index + 1].length; i++) {
+            auxiliar.push(e);
+          }
         });
+        pointersLabels[index] = auxiliar;
+      } else {
+        const clone = element.slice(0);
+        let auxiliar = [];
+        for (let indice = 0; indice < Math.floor(dataTable.length / clone.length); indice++) {
+          auxiliar = auxiliar.concat(clone);
+        }
+        pointersLabels[index] = auxiliar;
+      }
     });
-
+    indexLabels.reverse();
+    pointersLabels.reverse().forEach((element, index) => {
+      headerTable.unshift(labelsNames[indexLabels[index]]);
+      element.forEach((e, i) => {
+        if (dataTable[i] !== undefined) {
+          dataTable[i].unshift(e);
+        }
+      });
+    });
     ///////////////////////////////////////////////////////////
     return [headerTable, dataTable];
+  } else {
+    // RUTA NUEVA (sin HEADING)
+    // se asume que STUB define las dimensiones; se usará la primera dimensión como
+    // fila y la segunda como columna (formando una tabla crosstab).
+    // Extraer STUB
+    const stubMatch = data.match(/STUB=(.*?);/);
+    if (!stubMatch) {
+      console.error("No se encontró STUB en el fichero PX.");
+      return null;
+    }
+    const stubs = stubMatch[1]
+      .trim()
+      .split(/\s*,\s*/)
+      .map(s => s.replace(/^"+|"+$/g, '').trim());
+    const rowDim = stubs[0];
+    const colDim = stubs[1];
+  
+    // para extraer los valores de cada dimensión
+    function extractValuesFor(dimension) {
+      const regex = new RegExp('VALUES\\("' + dimension + '"\\)=((?:"[^"]+"(?:,\\s*)?)+);');
+      const m = data.match(regex);
+      if (m) {
+        return m[1]
+          .split(/",\s*"/)
+          .map(s => s.replace(/^"+|"+$/g, '').trim());
+      }
+      return null;
+    }
+    const rowValues = extractValuesFor(rowDim);
+    const colValues = extractValuesFor(colDim);
+    if (!rowValues || !colValues) {
+      console.error("No se pudieron extraer los valores para las dimensiones:", rowDim, colDim);
+      return null;
+    }
+  
+    // Construir la cabecera del CSV: la primera celda es el nombre de la dimensión de filas,
+    // y el resto son los valores de la dimensión de columnas.
+    const headerRow = [rowDim].concat(colValues);
+  
+    // Extraer la sección DATA
+    const dataMatch = data.match(/DATA=(.*?);/);
+    if (!dataMatch) {
+      console.error("No se encontró DATA en el fichero PX.");
+      return null;
+    }
+    const dataStr = dataMatch[1].trim();
+    // Se asume que los datos están separados por espacios (se filtran entradas vacías)
+    const dataValues = dataStr.split(/\s+/).filter(x => x.length > 0);
+  
+    // Se espera que DATA tenga rowValues.length * colValues.length elementos
+    if (dataValues.length < rowValues.length * colValues.length) {
+      console.error("La cantidad de datos (" + dataValues.length + ") es menor que lo esperado (" + (rowValues.length * colValues.length) + ").");
+      return null;
+    }
+  
+    // Construir las filas del CSV: cada fila comienza con un valor de rowValues y le sigue el bloque de datos correspondiente.
+    const table = [];
+    const nCols = colValues.length;
+    for (let i = 0; i < rowValues.length; i++) {
+      const start = i * nCols;
+      const rowData = dataValues.slice(start, start + nCols);
+      table.push([rowValues[i]].concat(rowData));
+    }
+  
+    return [headerRow, table];
+  }
 }
 
 // split array into chucks of the size parameter
