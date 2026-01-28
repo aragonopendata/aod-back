@@ -847,6 +847,7 @@ class DatasetController {
 
             logger.debug('Servicio: Generar archivo CSV al vuelo desde un PX');
             logger.notice('URL lectura de archivo: ' + serviceRequestUrl);
+            let serviceName = 'CSV_PX_GENERATOR';
 
             const httpRequestOptions = {
                 url: serviceRequestUrl,
