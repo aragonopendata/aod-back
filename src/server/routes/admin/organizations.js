@@ -23,8 +23,6 @@ const upload = multer({
     })
 });
 
-// FormData for send form-data
-const formData = require('form-data');
 //DB SETTINGS
 const db = require('../../db/db-connection');
 const pool = db.getPool();
