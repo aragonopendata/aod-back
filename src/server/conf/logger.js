@@ -79,7 +79,7 @@ const consoleFormat = winston.format.combine(
 
 const logger = winston.createLogger({
   levels,
-  level: process.env.LOG_LEVEL || 'debug',
+  level: process.env.LOG_LEVEL || 'info',
   transports: [
     // Daily rotating plaintext file
     new DailyRotateFile({
