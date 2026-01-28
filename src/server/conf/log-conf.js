@@ -12,6 +12,7 @@ let logConfig = {
     },
     // define one or multiple transports by the use of the data object (see the example mulitpleTransport.js) 
     transport: function (data) {
+        console.log(data.output);
     },
     // can be an array of color strings or functions 
     // node.js colors: black, red, green, yellow, blue, magenta, cyan and white 

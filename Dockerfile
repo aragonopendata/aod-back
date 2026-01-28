@@ -1,4 +1,4 @@
-FROM node:18-buster
+FROM node:18-bookworm
 
 RUN mkdir /app && \
     chown -R node:node /app
