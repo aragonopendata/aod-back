@@ -4,6 +4,7 @@ const constants = require('../../util/constants');
 const email = require('emailjs');
 const smtp = require('../../conf/smtp-conf');
 const smtpServer = smtp.getSMTPConnectionSettings();
+const logger = require('../../conf/logger');
 
 var server 	= email.server.connect({
     user:    smtpServer.user, 
@@ -32,7 +33,7 @@ router.post('/inscripcionPrestacionServPubli', function (req, res, next) {
         // send the message and get a callback with an error or details of the message that was sent
         server.send(message, function(err, message) {
             if(err){
-                console.log('Problemas al enviar el mensaje -> ' + err + ' // ' + message);
+                logger.error('Problemas al enviar el mensaje: ' + err);
                 res.json({
                     'status': constants.REQUEST_ERROR_INTERNAL_ERROR,
                     'success': false,
@@ -46,7 +47,7 @@ router.post('/inscripcionPrestacionServPubli', function (req, res, next) {
             }
         });
     } catch (error) {
-        console.log(error);
+        logger.error('Error en envío de correo: ' + error);
         res.json({
             'status': constants.REQUEST_ERROR_INTERNAL_ERROR,
             'success': false,

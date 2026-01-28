@@ -72,7 +72,7 @@ router.post(constants.API_URL_ADMIN_ORGANIZATION, upload.single('file'), functio
     try {
         var file = req.file;
         var organization = req.body;
-        console.log(file);
+        logger.debug('File received: ' + (file ? file.originalname : 'none'));
         if (file != undefined){
             organization.image_url='static/public/ckan/organizaciones/'+file.originalname;
         } else {
@@ -121,8 +121,7 @@ router.post(constants.API_URL_ADMIN_ORGANIZATION, upload.single('file'), functio
                 return;
             }
     } catch (error) {
-        console.log(error);
-        logger.error('ALTA DE ORGANIZACIONES - Error creando organización');
+        logger.error('ALTA DE ORGANIZACIONES - Error creando organización: ' + error);
         res.json({ 'status': constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': 'ALTA DE ORGANIZACIONES - Error creando organización' });
     }
 });
@@ -419,7 +418,7 @@ var getDatasetsOfOrgInCkan = function getDatasetsOfOrgInCkan(apiKey, organizatio
                 }
             });
         } catch (error) {
-            console.log(error);
+            logger.error('Error in getDatasetsOfOrgInCkan: ' + error);
             reject(error);
         }
     });
@@ -467,7 +466,7 @@ var deleteDatasetsInCkan = function deleteDatasetsInCkan(apiKey, datasets) {
                 resolve(true);
             }
         } catch (error) {
-            console.log(error);
+            logger.error('Error in deleteDatasetsInCkan: ' + error);
             reject(error);
         }
     });
@@ -509,7 +508,7 @@ var deleteOrganizationInCkan = function deleteOrganizationInCkan(apiKey, organiz
                 }
             });
         } catch (error) {
-            console.log(error);
+            logger.error('Error in deleteOrganizationInCkan: ' + error);
             reject(error);
         }
     });
@@ -525,12 +524,14 @@ var getUserPermissions = function checkUserPermissions(userId, userName) {
             };
             pool.connect((connError, client, release) => {
                 if (connError) {
-                  return console.error('Error acquiring client', connError.stack)
+                  logger.error('Error acquiring client: ' + connError.stack);
+                  return reject(connError);
                 }
                 client.query(query, (err, queryResult) => {
                   release()
                   if (err) {
-                    return console.error('Error executing query', err.stack)
+                    logger.error('Error executing query: ' + err.stack);
+                    return reject(err);
                   }else{
                     resolve(queryResult.rows[0]);
                   }

@@ -589,8 +589,8 @@ class DatasetController {
     }
 
     getDatasetsSIU = (req, res) => {
-        console.log('Request received: orgs: ' + req.query.orgs);
-        console.log('Request received: tema: ' + req.query.tema);
+        logger.debug('Request received: orgs: ' + req.query.orgs);
+        logger.debug('Request received: tema: ' + req.query.tema);
         let names = [];
         let topics = [];
         let topic_search = false;
@@ -731,8 +731,7 @@ class DatasetController {
                 }
 
                 logger.notice('URL de petición: ' + serviceRequestUrl);
-                console.log(serviceRequestUrl);
-                console.log(httpConf);
+                logger.debug('httpConf: ' + JSON.stringify(httpConf));
                 http.get(serviceRequestUrl, function (results) {
                     let body = '';
                     results.on('data', function (chunk) {
@@ -767,8 +766,8 @@ class DatasetController {
                 promises.push(getTopicsByAragonTopic());
 
                 const runPromises = Promise.all(promises).then(result => {
-                    console.log('names:' + names);
-                    console.log('topics:' + topics);
+                    logger.debug('names: ' + names);
+                    logger.debug('topics: ' + topics);
                     if (names.length === 0) {
                         org_search = false;
                     }
@@ -908,8 +907,8 @@ class DatasetController {
                 }
                 client.query(query, (err, queryResult) => {
                     if (err) {
-                        logger.error(err.stack);
-                        return console.error('Error executing query', err.stack)
+                        logger.error('Error executing query: ' + err.stack);
+                        return;
                     } else {
                         client.query('COMMIT', (commitError) => {
                             release();
@@ -994,7 +993,7 @@ function parsePXFile(data) {
     // Prepare the Headers Names
     parse = data.match(/HEADING=[.\s\S]*?;/);
     if (!parse) {
-      console.error("Error al procesar HEADING.");
+      logger.error("Error al procesar HEADING.");
       return null;
     }
     parse = parse[0].split('=').pop().slice(0, -1);
@@ -1008,7 +1007,7 @@ function parsePXFile(data) {
     // Prepare the Headers Names of the labels/stub
     parse = data.match(/STUB=[.\s\S]*?;/);
     if (!parse) {
-      console.error("No se encontró STUB en el fichero PX.");
+      logger.error("No se encontró STUB en el fichero PX.");
       return null;
     }
     parse = parse[0].split('=').pop().slice(0, -1);
@@ -1049,7 +1048,7 @@ function parsePXFile(data) {
     // Prepare Table Data from DATA section
     parse = data.match(/DATA=[.\s\S]*?;/);
     if (!parse) {
-      console.error("No se encontró DATA en el fichero PX.");
+      logger.error("No se encontró DATA en el fichero PX.");
       return null;
     }
     parse = parse[0].split('= ').pop().slice(0, -1);
@@ -1144,7 +1143,7 @@ function parsePXFile(data) {
     // Extraer STUB
     const stubMatch = data.match(/STUB=(.*?);/);
     if (!stubMatch) {
-      console.error("No se encontró STUB en el fichero PX.");
+      logger.error("No se encontró STUB en el fichero PX.");
       return null;
     }
     const stubs = stubMatch[1]
@@ -1168,7 +1167,7 @@ function parsePXFile(data) {
     const rowValues = extractValuesFor(rowDim);
     const colValues = extractValuesFor(colDim);
     if (!rowValues || !colValues) {
-      console.error("No se pudieron extraer los valores para las dimensiones:", rowDim, colDim);
+      logger.error("No se pudieron extraer los valores para las dimensiones: " + rowDim + ", " + colDim);
       return null;
     }
   
@@ -1179,7 +1178,7 @@ function parsePXFile(data) {
     // Extraer la sección DATA
     const dataMatch = data.match(/DATA=(.*?);/);
     if (!dataMatch) {
-      console.error("No se encontró DATA en el fichero PX.");
+      logger.error("No se encontró DATA en el fichero PX.");
       return null;
     }
     const dataStr = dataMatch[1].trim();
@@ -1188,7 +1187,7 @@ function parsePXFile(data) {
   
     // Se espera que DATA tenga rowValues.length * colValues.length elementos
     if (dataValues.length < rowValues.length * colValues.length) {
-      console.error("La cantidad de datos (" + dataValues.length + ") es menor que lo esperado (" + (rowValues.length * colValues.length) + ").");
+      logger.error("La cantidad de datos (" + dataValues.length + ") es menor que lo esperado (" + (rowValues.length * colValues.length) + ").");
       return null;
     }
   

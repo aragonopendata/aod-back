@@ -596,7 +596,7 @@ function rollback(client, done, err){
     if (err) {
         client.query('ROLLBACK', (err) => {
             if (err) {
-                console.error('Error rolling back client', err.stack)
+                logger.error('Error rolling back client: ' + err.stack)
             }
             done();
         })

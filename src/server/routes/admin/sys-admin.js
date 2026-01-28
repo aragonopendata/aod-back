@@ -27,7 +27,8 @@ router.get('/sysadmin', function (req, res, next) {
         
         fs.readFile(constants.SPIDER_LOG_PATH, function (err, data) {
             if (err) {
-                return console.log(err);
+                logger.error('Error leyendo archivo: ' + err);
+                return;
             }
             logTxt = data.toString('utf8');
             lines = logTxt.split("\n");
@@ -53,7 +54,8 @@ router.get('/sysadmin', function (req, res, next) {
             .catch((err) => res.send(err));
         });
     } catch(error) {
-        return console.log(error);
+        logger.error('Error: ' + error);
+        return;
     }
 });
 
@@ -71,13 +73,15 @@ router.get('/sysadmin/emailRevision', function (req, res, next) {
     try {
         fs.readFile(constants.SPIDER_EMAIL_REVISION_PATH, function (err, data) {
             if (err) {
-                return console.log(err);
+                logger.error('Error leyendo archivo: ' + err);
+                return;
             }
             emailRevision = data.toString('utf8');
             res.send(emailRevision);
         });
     } catch(error) {
-        return console.log(error);
+        logger.error('Error: ' + error);
+        return;
     }
 });
 
@@ -89,7 +93,8 @@ router.put('/sysadmin/emailRevision', function (req, res, next) {
             var jsonEmailRevision = {emailRevision: 0};
             fs.writeFile(constants.SPIDER_EMAIL_REVISION_PATH, JSON.stringify(jsonEmailRevision), function (err, data) {
                 if (err) {
-                    return console.log(err);
+                    logger.error('Error leyendo archivo: ' + err);
+                return;
                 }
                 var successJson = { 
                     'status': constants.REQUEST_REQUEST_OK, 
@@ -100,7 +105,8 @@ router.put('/sysadmin/emailRevision', function (req, res, next) {
             });
         }
     } catch(error) {
-        return console.log(error);
+        logger.error('Error: ' + error);
+        return;
     }
 });
 

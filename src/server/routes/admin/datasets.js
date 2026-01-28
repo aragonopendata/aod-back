@@ -19,13 +19,13 @@ var upload = multer({ storage: storage });
 var disk_storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const dir = constants.XLSM_PATH + req.body.datasetid;
-        console.log(dir);
+        logger.debug('Creating directory: ' + dir);
         try {
             if (!fs.existsSync(dir)){
               fs.mkdirSync(dir)
             }
           } catch (err) {
-            console.error(err)
+            logger.error('Error creating directory: ' + err);
           }
       cb(null, dir);   
     },
@@ -89,8 +89,7 @@ router.get(constants.API_URL_DATASETS, function (req, res, next) {
             return;
         }
     } catch (error) {
-        console.log(error);
-        logger.error('Error in route' + constants.API_URL_DATASETS);
+        logger.error('Error in route ' + constants.API_URL_DATASETS + ': ' + error);
     }
 });
 
@@ -134,8 +133,7 @@ router.get(constants.API_URL_DATASETS + '/:datasetName', function (req, res, nex
             return;
         }
     } catch (error) {
-        console.log(error);
-        logger.error('Error in route' + constants.API_URL_DATASETS);
+        logger.error('Error in route ' + constants.API_URL_DATASETS + ': ' + error);
     }
 });
 
@@ -247,7 +245,6 @@ router.put(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
                             return;
                         }
                     }).catch(error => {
-                        console.log(error);
                         logger.error('ACTUALIZACIÓN DE DATASETS - Respuesta del servidor errónea: ' + error);
                         if (error == '409 - "Conflict"') {
                             res.json({ 'status': constants.REQUEST_ERROR_CONFLICT, 'error': 'ACTUALIZACIÓN DE DATASETS - Conflicto al actualizar dataset, conflicto en algun parametro.', 
@@ -277,7 +274,6 @@ router.put(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
 router.delete(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
     try {
         var dataset = req.body;
-        console.log(req.body);
         logger.notice('Dataset a borrar: ' + JSON.stringify(dataset.name));
         //0. CHECKING REQUEST PARAMETERS
         if(dataset.name != ''){
@@ -300,7 +296,7 @@ router.delete(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
                             const dir = constants.XLSM_PATH + req.body.datasetid;
                             const file1 = dir + '/mapeo_ei2a.xlsm';
                             const file2 = dir + '/mapeo_ei2a.csv';
-                            console.log(dir);
+                            logger.debug('Cleaning map files in directory: ' + dir);
 
                             try {
                                 if (fs.existsSync(file1)){
@@ -309,7 +305,7 @@ router.delete(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
                                     fs.rmdirSync(dir);
                                 }
                             } catch (err) {
-                                console.error(err)
+                                logger.error('Error cleaning map files: ' + err);
                             }
 
                         }else{
@@ -328,7 +324,6 @@ router.delete(constants.API_URL_ADMIN_DATASET, function (req, res, next) {
                             return;
                         }
                     }).catch(error => {
-                        console.log(error);
                         logger.error('BORRADO DE DATASETS - Respuesta del servidor errónea: ' + error);
                         res.json({ 'status': constants.REQUEST_ERROR_BAD_DATA, 'error': 'BORRADO DE DATASETS - Respuesta del servidor errónea' });
                         return;
@@ -463,7 +458,6 @@ router.put(constants.API_URL_ADMIN_RESOURCE, upload.single('file'), function (re
                             return;
                         }
                     }).catch(error => {
-                        console.log(error);
                         logger.error('ACTUALIZACIÓN DE RECURSOS - Respuesta del servidor errónea: ' + error);
                         if (error == '409 - "Conflict"') {
                             res.json({ 'status': constants.REQUEST_ERROR_CONFLICT, 'error': 'ACTUALIZACIÓN DE RECURSOS - Conflicto al actualizar recurso, conflicto en algun parametro.', 
@@ -599,7 +593,7 @@ router.post(constants.API_URL_ADMIN_CREATE_FILE, disk_upload.single('file'), fun
         // Parse XLSM to CSV
         const dir = constants.XLSM_PATH + req.body.datasetid;
         const fx = dir + '/mapeo_ei2a';
-        console.log(dir);
+        logger.debug('Processing XLSM file in directory: ' + dir);
 
         var obj = xlsx.parse(fx + '.xlsm');
         var rows = [];
@@ -627,14 +621,15 @@ router.post(constants.API_URL_ADMIN_CREATE_FILE, disk_upload.single('file'), fun
         // Write to file
         fs.writeFile(fx + ".csv", writeStr, function(err) {
             if(err) {
-                return console.log(err);
+                logger.error('Error writing CSV file: ' + err);
+                return;
             }
-            console.log("mapeo_ei2a.csv was saved correctly");
+            logger.info("mapeo_ei2a.csv was saved correctly");
         });
 
         res.json({ 'status': constants.REQUEST_REQUEST_OK, 'success': true, 'filename': req.file.filename, 'message': 'File uploaded succesfully.' });
     } catch (error) {
-        console.log(error);
+        logger.error('Error processing XLSM upload: ' + error);
     }
 
   })
@@ -655,7 +650,8 @@ var getUserPermissions = function checkUserPermissions(userId, userName) {
 
             pool.connect((connError, client, release) => {
                 if (connError) {
-                    return console.error('Error acquiring client', connError.stack)
+                    logger.error('Error acquiring client: ' + connError.stack);
+                    return;
                 }
                 client.query(query, (queryError, queryResult) => {
                     release();
@@ -738,8 +734,8 @@ var updateDatasetInCkan = function updateDatasetInCkan(apiKey, dataset) {
 
             request(httpRequestOptions, function (err, res, body) {
                 if (err) {
+                    logger.error('Error updating dataset in CKAN: ' + err);
                     reject(err);
-                    console.log(err);
                 }
                 if (res) {
                     if (res.statusCode == 200) {
@@ -894,8 +890,8 @@ var insertResourceInCKAN = function insertResourceInCKAN(apiKey, clientRequest) 
             resolve(body);
           });
         } catch (error) {
+            logger.error('Error inserting resource in CKAN: ' + error);
             reject(error);
-            console.error(error);
         }
     });
 }
@@ -953,8 +949,8 @@ var updateResourceInCkan = function updateResourceInCkan(apiKey, resource, file)
 
             request(options, function (err, res, body) {
                 if (err) {
+                    logger.error('Error updating resource in CKAN: ' + err);
                     reject(err);
-                    console.log(err);
                 }
                 if (res) {
                     if (res.statusCode == 200) {
@@ -966,10 +962,10 @@ var updateResourceInCkan = function updateResourceInCkan(apiKey, resource, file)
                     }
                 } else {
                     reject('Respuesta nula');
-                }                
+                }
             });
         } catch (error) {
-            console.log(error);
+            logger.error('Error updating resource in CKAN: ' + error);
             reject(error);
         }
     });
@@ -1008,11 +1004,11 @@ var deleteResourceInCKAN = function deleteResourceInCKAN(apiKey, resource_id) {
                     resolve(res.body);
                 } else {
                     reject('Respuesta nula');
-                }                
+                }
             });
         } catch (error) {
+            logger.error('Error in deleteResourceInCKAN: ' + error);
             reject(error);
-            console.error(error);
         }
     });
 }

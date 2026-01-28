@@ -596,8 +596,7 @@ var insertUserInCkan = function insertUserInCkan(userApiKey, user) {
                 }
             });
         } catch (error) {
-            console.log(error);
-            logger.error('Error insertando usuario en CKAN:', error);
+            logger.error('Error insertando usuario en CKAN: ' + error);
             reject(error);
         }
     });
@@ -706,8 +705,7 @@ var getCkanGroups = function getCkanGroups(userApiKey) {
                 }
             });
         } catch (error) {
-            console.log(error);
-            logger.error('Error obteniendo grupos de CKAN:', error);
+            logger.error('Error obteniendo grupos de CKAN: ' + error);
             reject(error);
         }
     });

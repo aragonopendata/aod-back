@@ -488,7 +488,7 @@ var createEventInCampus = function createEventInCampus(name, description, site_i
                     if (err) {
                         client.query('ROLLBACK', (err) => {
                             if (err) {
-                                console.error('Error rolling back client', err.stack)
+                                logger.error('Error rolling back client: ' + err.stack)
                             }
                             done();
                         })
@@ -554,7 +554,7 @@ var updateEventInCampus = function updateEventInCampus(name, description, site_i
                     if (err) {
                         client.query('ROLLBACK', (err) => {
                             if (err) {
-                                console.error('Error rolling back client', err.stack)
+                                logger.error('Error rolling back client: ' + err.stack)
                             }
                             done();
                         })
@@ -710,7 +710,7 @@ var createEntryInCampus = function createEntryInCampus(title, description, url, 
                     if (err) {
                         client.query('ROLLBACK', (err) => {
                             if (err) {
-                                console.error('Error rolling back client', err.stack)
+                                logger.error('Error rolling back client: ' + err.stack)
                             }
                             done();
                         })
@@ -791,7 +791,7 @@ var updateEntryInCampus = function updateEntryInCampus(title, description, url, 
                     if (err) {
                         client.query('ROLLBACK', (err) => {
                             if (err) {
-                                console.error('Error rolling back client', err.stack)
+                                logger.error('Error rolling back client: ' + err.stack)
                             }
                             done();
                         })

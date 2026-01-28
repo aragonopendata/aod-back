@@ -55,19 +55,18 @@ router.post(constants.API_URL_AUTHENTICATE, function (req, res, next) {
                 release()
                 if (err) {
                     logger.error(err.stack);
-                    return console.error('Error executing query', err.stack)
+                    logger.error('Error executing query: ' + err.stack);
+                    return;
                 } else {
                     if (queryResult && queryResult.rows && queryResult.rows.length > 0) {
-                        logger.info(queryResult.rows);
+                        logger.info('Usuario autenticado: ' + user);
                         var data = {
                             exp: Math.floor(Date.now() / 1000) + (60 * 120),
                             username: user
                         };
                         var token = generateToken(data);
                         if (token) {
-                            logger.error('Token: ' + token);
-                            var json = JSON.stringify(queryResult.rows);
-                            logger.error('Filas: ' + json);
+                            logger.debug('Token generado correctamente para usuario: ' + user);
                             res.json({ status: 200, token: token
                                      , id: queryResult.rows[0].userId
                                      , name: queryResult.rows[0].userName

@@ -3,6 +3,7 @@ const { Client } = require('@elastic/elasticsearch')
 const http = require('http');
 const path = require('path');
 const xml = require('xml2js');
+const logger = require('../conf/logger');
 
 const client = new Client({ node: constants.ANALYTICS_ELASTIC_URL,
 auth: {
@@ -81,7 +82,7 @@ module.exports = {
             ignore_unavailable: true,
             allow_no_indices: true,
         }).then().catch((error) => {
-            console.log(error);
+            logger.error('Elasticsearch error: ' + error);
         })
     },
     updatePortal: function (portal, id) {
@@ -94,7 +95,7 @@ module.exports = {
                 }
             }
         }).then().catch((error) => {
-            console.log(error);
+            logger.error('Elasticsearch error: ' + error);
         })
     },
     reloadPortal: async function (portal, reloadDate, delay) {
@@ -803,7 +804,7 @@ function delete_date(reloadDate, id) {
             }
         }
     }).then().catch((error) => {
-        console.log(error);
+        logger.error('Elasticsearch error: ' + error);
     });
 }
 
@@ -817,7 +818,7 @@ async function index(index, list) {
                 //type: body.type,
                 document: body
             }).then().catch((error) => {
-                console.log(error);
+                logger.error('Elasticsearch error: ' + error);
             });
         }
     }
