@@ -916,7 +916,7 @@ class DatasetController {
                                 logger.notice('Error realizando commit: ' + commitError);
                                 res.json({ status: constants.REQUEST_ERROR_INTERNAL_ERROR, 'error': commitError });
                             } else {
-                                logger.notice('Tracking insertado correctamente');
+                                logger.debug('Tracking insertado correctamente');
                                 res.json({ status: 200 });
                             }
                         });
