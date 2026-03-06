@@ -589,7 +589,7 @@ class DatasetController {
     }
 
     getDatasetsSIU = (req, res) => {
-        const queryOrgs = req.query.orgs || '';
+        const queryOrgs = req.query.orgs || req.query.org || '';
         const queryTema = req.query.tema || '';
         logger.debug('Request received: orgs: ' + queryOrgs);
         logger.debug('Request received: tema: ' + queryTema);
@@ -601,7 +601,7 @@ class DatasetController {
         try {
             function getOrgsBySiuCode(){
                 return new Promise(resolve => {
-                    let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'organization_list?all_fields=true&include_extras=true';
+                    let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'organization_list?all_fields=true&include_extras=true&limit=1000';
                     let siu_codes = queryOrgs.split(' ');
 
                     //Proxy checking
@@ -638,6 +638,7 @@ class DatasetController {
                             }
 
                             names = [...new Set(names)];
+                            logger.debug('SIU matched organizations: ' + JSON.stringify(names));
                             if (queryOrgs === 'ALL') {
                                 names.push('ALL');
                             }
@@ -652,7 +653,7 @@ class DatasetController {
 
             function getTopicsByAragonTopic() {
                 return new Promise(resolve => {
-                    let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'group_list?all_fields=true&include_extras=true';
+                    let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'group_list?all_fields=true&include_extras=true&limit=1000';
                    const aragon_topics = queryTema.split(' ');
 
                     //Proxy checking
