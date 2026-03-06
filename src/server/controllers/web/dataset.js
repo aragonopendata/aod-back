@@ -589,8 +589,10 @@ class DatasetController {
     }
 
     getDatasetsSIU = (req, res) => {
-        logger.debug('Request received: orgs: ' + req.query.orgs);
-        logger.debug('Request received: tema: ' + req.query.tema);
+        const queryOrgs = req.query.orgs || '';
+        const queryTema = req.query.tema || '';
+        logger.debug('Request received: orgs: ' + queryOrgs);
+        logger.debug('Request received: tema: ' + queryTema);
         let names = [];
         let topics = [];
         let topic_search = false;
@@ -600,7 +602,7 @@ class DatasetController {
             function getOrgsBySiuCode(){
                 return new Promise(resolve => {
                     let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'organization_list?all_fields=true&include_extras=true';
-                    let siu_codes = req.query.orgs.split(' ');
+                    let siu_codes = queryOrgs.split(' ');
 
                     //Proxy checking
                     let httpConf = null;
@@ -636,13 +638,13 @@ class DatasetController {
                             }
 
                             names = [...new Set(names)];
-                            if (req.query.orgs === 'ALL') {
+                            if (queryOrgs === 'ALL') {
                                 names.push('ALL');
                             }
                             resolve(true);
                         });
                     }).on('error', function (err) {
-                        utils.errorHandler(err, res, serviceName);
+                        utils.errorHandler(err, res, 'getOrgsBySiuCode');
                         resolve(false);
                     });
                 });
@@ -651,7 +653,7 @@ class DatasetController {
             function getTopicsByAragonTopic() {
                 return new Promise(resolve => {
                     let serviceRequestUrl = constants.CKAN_API_BASE_URL + 'group_list?all_fields=true&include_extras=true';
-                   const aragon_topics = req.query.tema.split(' ');
+                   const aragon_topics = queryTema.split(' ');
 
                     //Proxy checking
                     let httpConf = null;
@@ -688,7 +690,7 @@ class DatasetController {
                             resolve(true);
                         });
                     }).on('error', function (err) {
-                        utils.errorHandler(err, res, serviceName);
+                        utils.errorHandler(err, res, 'getTopicsByAragonTopic');
                         resolve(false);
                     });
                 });
@@ -747,18 +749,15 @@ class DatasetController {
 
             const promises = [];
 
-            if ((req.query.orgs !== undefined && (req.query.orgs.includes('ORG') || req.query.orgs === 'ALL')) ||
-                (req.query.tema !== undefined)) {
+            if ((queryOrgs !== '' && (queryOrgs.includes('ORG') || queryOrgs === 'ALL')) ||
+                (queryTema !== '')) {
 
-                if ((req.query.orgs.split(' ')[0].trim() === '' ||
-                        req.query.orgs.split(' ')[0].trim() === undefined) &&
-                    (req.query.tema.split(' ')[0].trim() != '' &&
-                        req.query.tema.split(' ')[0].trim() != undefined) ) {
+                const orgsFirst = queryOrgs.split(' ')[0].trim();
+                const temaFirst = queryTema.split(' ')[0].trim();
+
+                if ((orgsFirst === '') && (temaFirst !== '')) {
                     topic_search = true;
-                } else if ((req.query.tema.split(' ')[0].trim() === '' ||
-                        req.query.tema.split(' ')[0].trim() === undefined) &&
-                    (req.query.orgs.split(' ')[0].trim() != '' &&
-                        req.query.orgs.split(' ')[0].trim() != undefined) ) {
+                } else if ((temaFirst === '') && (orgsFirst !== '')) {
                     org_search = true;
                 }
 
@@ -779,8 +778,8 @@ class DatasetController {
                 })();
 
             } else {
-                names = req.query.orgs.split(' ');
-                topics = req.query.tema.split(' ');
+                names = queryOrgs.split(' ');
+                topics = queryTema.split(' ');
 
                 getDatsetsByOrgsTopic();
             }
