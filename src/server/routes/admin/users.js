@@ -4,8 +4,7 @@ const http = require('http');
 const constants = require('../../util/constants');
 const utils = require('../../util/utils');
 const dbQueries = require('../../db/db-queries');
-const CryptoJS = require('crypto-js');
-const SHA256 = require('crypto-js/sha256');
+const crypto = require('crypto');
 const request = require('request');
 const proxy = require('../../conf/proxy-conf');
 //DB SETTINGS
@@ -606,7 +605,7 @@ var insertUserInManager = function insertUserInManager(user, ckanTokenResponse) 
     return new Promise((resolve, reject) => {
         try {
             var apikey = ckanTokenResponse.token;
-            var password = user.password = SHA256(user.password).toString(CryptoJS.enc.Base64);
+            var password = user.password = crypto.createHash('sha256').update(user.password).digest('base64');
             var userRole = user.role;
             var fullname = user.fullname != null ? user.fullname : '';
             var createdUserId = null;

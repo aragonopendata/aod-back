@@ -36,8 +36,6 @@ var disk_storage = multer.diskStorage({
    
 var disk_upload = multer({ storage: disk_storage });
 
-// FormData for send form-data
-const formData = require('form-data');  
 const fs = require('fs');
 //DB SETTINGS
 const db = require('../../db/db-connection');

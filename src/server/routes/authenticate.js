@@ -2,8 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const fs = require('fs');
-const CryptoJS = require("crypto-js");
-const SHA256 = require("crypto-js/sha256");
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const constants = require('../util/constants');
 //DB SETTINGS 
@@ -17,7 +16,7 @@ router.post(constants.API_URL_AUTHENTICATE, function (req, res, next) {
     try {
         let user = req.body.username;
         // Gets password and encrypt it with SHA256 algorithm. After that, converts it in Base64 format.
-        let password = SHA256(req.body.password).toString(CryptoJS.enc.Base64);
+        let password = crypto.createHash('sha256').update(req.body.password).digest('base64');
         const query = {
             text: 'SELECT usr.id AS "userId", usr.name AS "userName" '
                      + ', usr.fullname AS "userFullName", rol."name" as "userRol" '

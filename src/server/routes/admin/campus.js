@@ -27,8 +27,6 @@ const upload = multer({
         }
     })
 });
-// FormData for send form-data
-const formData = require('form-data');
 const fs = require('fs-extra');
 //DB SETTINGS
 const db = require('../../db/db-connection');
