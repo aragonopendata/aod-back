@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "Open Data DGA",
   "license": "ISC",
@@ -24,6 +24,7 @@
     "fs-extra": "^4.0.3",
     "handlebars": "^4.7.8",
     "http-proxy-agent": "^2.1.0",
+    "http-proxy-middleware": "^2.0.6",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "node-xlsx": "^0.24.0",

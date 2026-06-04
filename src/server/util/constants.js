@@ -116,6 +116,13 @@ exports.XLSM_PATH = '/data/assets/public/documentos/ei2aRelated/';
 exports.CKAN_API_BASE_URL = process.env.CKAN_API_BASE_URL;
 exports.CKAN_BASE_URL = process.env.CKAN_BASE_URL;
 exports.CKAN_BASE_PORT = process.env.CKAN_BASE_PORT;
+
+/* CKAN API PROXY ( /aod/api -> CKAN /api ) */
+exports.CKAN_API_PROXY_MOUNT_PATH = '/aod/api';
+exports.CKAN_API_PROXY_TARGET = process.env.CKAN_API_PROXY_TARGET;
+exports.CKAN_API_PROXY_TARGET_PATH = process.env.CKAN_API_PROXY_TARGET_PATH || '/ckan/api';
+exports.CKAN_API_PROXY_LOG_LEVEL = process.env.CKAN_API_PROXY_LOG_LEVEL || 'info';
+exports.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS = process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS || '';
 /* DATASETS ACCESS TRACKING REGISTRY */
 exports.CKAN_URL_PATH_TRACKING_DATASET = '/dataset';
 exports.CKAN_URL_PATH_TRACKING = '/_tracking';

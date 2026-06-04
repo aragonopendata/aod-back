@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## Added
+- New `/aod/api/*` reverse-proxy in front of the CKAN API (`server/routes/proxy/ckan-api-proxy.js`).
+  - Whitelist + deny-by-default policy (`server/util/ckan-api-whitelist.js`).
+  - URL rewriter sanitises responses, replacing `/ckan/api`, `/ckan/dataset/<id>/resource/<id>/download`, `/ckan/dataset/<id>/resource/<id>/view`, `/ckan/dataset/<id>.rdf` and `/ckan/uploads/` with their public-facing equivalents (`server/util/ckan-url-rewriter.js`). `/ckan/webassets/` is preserved intentionally.
+  - Configuration via `CKAN_API_PROXY_TARGET`, `CKAN_API_PROXY_TARGET_PATH`, `CKAN_API_PROXY_LOG_LEVEL`, `CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS` env vars.
+- Response sanitiser middleware (`server/middleware/ckan-response-rewriter.js`) mounted on `/aod/services/web` and `/aod/services/admin`. It wraps `res.json` and runs the same URL rewriter over the bodies aod-back returns to its clients (the existing endpoints keep calling CKAN over the internal network; only the client-facing output is sanitised). Covers every endpoint that forwards CKAN data, including `getDatasetRDF` (XML). No-op when the body has no `/ckan` substring.
+- Jest test suite (`npm test`) with 42 tests covering the whitelist, the URL rewriter, the response middleware and integration of the proxy against a mock CKAN backend.
 ## Updated
 - Functionality bugs fixed (admin)
 

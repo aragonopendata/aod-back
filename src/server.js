@@ -11,6 +11,8 @@ const corsHeaders = require('./server/conf/cors-headers');
 const logger = require("./server/conf/logger");
 
 // API ROUTES
+const ckanApiProxy = require('./server/routes/proxy/ckan-api-proxy');
+const ckanResponseRewriter = require('./server/middleware/ckan-response-rewriter');
 const datasets = require('./server/routes/web/datasets');
 const tags = require('./server/routes/web/tags');
 const topics = require('./server/routes/web/topics');
@@ -41,6 +43,12 @@ const verifyToken = require('./server/util/verifyToken');
 const app = express();
 // Cors Response headers
 app.use(corsHeaders.permission);
+
+// CKAN API public proxy: se monta ANTES del body-parser para que el
+// http-proxy-middleware reciba el stream original (no consumido) en POST.
+// Ver `server/routes/proxy/ckan-api-proxy.js`.
+app.use(constants.CKAN_API_PROXY_MOUNT_PATH, ckanApiProxy);
+
 // Parsers for POST data
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
@@ -59,6 +67,13 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: true }
 }));
+
+// CKAN response sanitiser: envuelve res.json para reescribir las URLs
+// `/ckan/...` que aod-back devuelve al cliente en /aod/services/web y
+// /aod/services/admin. Se monta ANTES de los routers para que hereden el
+// `res.json` envuelto. Ver `server/middleware/ckan-response-rewriter.js`.
+app.use(constants.API_BASE_URL_WEB, ckanResponseRewriter);
+app.use(constants.API_BASE_URL_ADMIN, ckanResponseRewriter);
 
 // Set our api routes
 app.use(constants.API_BASE_URL_SECURITY, authenticate);
