@@ -3,15 +3,8 @@
 const whitelist = require('../ckan-api-whitelist');
 
 describe('ckan-api-whitelist', () => {
-    afterEach(() => {
-        delete process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS;
-        whitelist.resetCache();
-        // Limpiar caché de require para que constants relea las env vars
-        jest.resetModules();
-    });
-
     describe('isAllowed', () => {
-        test('permite acciones de lectura comunes', () => {
+        test('permite acciones de lectura comunes (allow-by-default)', () => {
             const reads = [
                 'package_search',
                 'package_show',
@@ -31,7 +24,7 @@ describe('ckan-api-whitelist', () => {
             ];
             for (const action of reads) {
                 const v = whitelist.isAllowed(action);
-                expect(v).toEqual({ allowed: true, reason: 'read_actions' });
+                expect(v).toEqual({ allowed: true, reason: 'allow_by_default' });
             }
         });
 
@@ -67,9 +60,9 @@ describe('ckan-api-whitelist', () => {
             }
         });
 
-        test('deniega acciones desconocidas (deny-by-default)', () => {
+        test('permite acciones desconocidas (allow-by-default)', () => {
             const v = whitelist.isAllowed('something_invented_that_does_not_exist');
-            expect(v).toEqual({ allowed: false, reason: 'not_in_whitelist' });
+            expect(v).toEqual({ allowed: true, reason: 'allow_by_default' });
         });
 
         test('deniega cadena vacía o no string', () => {
@@ -87,27 +80,5 @@ describe('ckan-api-whitelist', () => {
             expect(whitelist.isAllowed('user_delete').allowed).toBe(false);
         });
 
-        test('EXTRA_ALLOWED_ACTIONS añade acciones desde .env', () => {
-            process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS = 'recently_changed_packages_activity_list, member_list';
-            // Forzar relectura de constants y whitelist
-            jest.resetModules();
-            const wl = require('../ckan-api-whitelist');
-            expect(wl.isAllowed('recently_changed_packages_activity_list')).toEqual({ allowed: true, reason: 'extra_allowed' });
-            expect(wl.isAllowed('member_list')).toEqual({ allowed: true, reason: 'extra_allowed' });
-            // Una no incluida sigue denegada
-            expect(wl.isAllowed('something_else').allowed).toBe(false);
-        });
-
-        test('EXTRA_ALLOWED_ACTIONS no puede saltarse la blacklist', () => {
-            process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS = 'package_create,user_delete';
-            jest.resetModules();
-            const wl = require('../ckan-api-whitelist');
-            const a = wl.isAllowed('package_create');
-            const b = wl.isAllowed('user_delete');
-            expect(a.allowed).toBe(false);
-            expect(a.reason).toMatch(/^blocked_pattern:/);
-            expect(b.allowed).toBe(false);
-            expect(b.reason).toMatch(/^blocked_pattern:/);
-        });
     });
 });

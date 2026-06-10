@@ -3,7 +3,7 @@
 /**
  * Reverse-proxy `/aod/api/*` -> `<CKAN backend>/ckan/api/*`.
  *
- * - Filtra peticiones según whitelist/blacklist (ver `util/ckan-api-whitelist`).
+ * - Filtra peticiones según blocklist (ver `util/ckan-api-whitelist`, política allow-by-default).
  * - Reescribe las URLs `/ckan/...` que aparezcan en las respuestas JSON
  *   (ver `util/ckan-url-rewriter`) salvo `/ckan/webassets/`.
  * - Loguea cada petición con su veredicto y las URLs residuales con `/ckan/`
@@ -13,7 +13,6 @@
  *   CKAN_API_PROXY_TARGET            scheme + host[:port] del CKAN backend
  *   CKAN_API_PROXY_TARGET_PATH       prefijo a aplicar en target (default /ckan/api)
  *   CKAN_API_PROXY_LOG_LEVEL         silent|error|warn|info|debug (default info)
- *   CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS  CSV con acciones extra a permitir
  */
 
 const express = require('express');
@@ -30,10 +29,17 @@ const router = express.Router();
  * Extrae el nombre de la acción CKAN a partir del path de la petición
  * tras el montaje en `/aod/api`.
  *
+ * Se aceptan dos formas de URL equivalentes:
+ *   - /aod/api/3/action/<accion>   (con versión explícita, forma canónica CKAN)
+ *   - /aod/api/action/<accion>     (sin versión, forma abreviada)
+ *
  * Ejemplos:
  *   /3/action/package_show           -> 'package_show'
  *   /3/action/package_show?id=foo    -> 'package_show'
+ *   /action/package_show             -> 'package_show'
+ *   /action/package_show?id=foo      -> 'package_show'
  *   /3/action/                       -> ''
+ *   /action/                         -> ''
  *   /                                -> ''
  *
  * @param {string} reqPath req.path tal cual lo da Express tras el mount.
@@ -43,7 +49,7 @@ function extractAction(reqPath) {
     if (typeof reqPath !== 'string') {
         return '';
     }
-    const m = reqPath.match(/^\/?\d+\/action\/([^/?#]+)/);
+    const m = reqPath.match(/^\/?(?:\d+\/)?action\/([^/?#]+)/);
     return m ? m[1] : '';
 }
 
@@ -56,7 +62,7 @@ function actionGuard(req, res, next) {
     if (action.length === 0) {
         // No reconocemos la acción. Solo dejamos pasar peticiones a `/3/action/`
         // sin nombre cuando son la propia URL de descubrimiento (action_list/help_show)
-        // — ya están en READ_ACTIONS si alguien las invoca con nombre. Aquí
+        // — si alguien las invoca con nombre, se resolverán con allow-by-default. Aquí
         // denegamos por seguridad.
         logger.warning(
             'ckan-api-proxy: petición rechazada por path no reconocido. ' +

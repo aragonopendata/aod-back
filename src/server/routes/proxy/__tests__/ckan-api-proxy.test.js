@@ -172,14 +172,13 @@ describe('ckan-api-proxy (integración)', () => {
         expect(upstreamRequests).toHaveLength(0);
     });
 
-    test('GET /aod/api/3/action/accion_inventada responde 403 (deny-by-default)', async () => {
+    test('GET /aod/api/3/action/accion_inventada pasa al upstream (allow-by-default)', async () => {
         const app = buildApp();
-        const res = await request(app)
+        await request(app)
             .get('/aod/api/3/action/accion_inventada')
-            .expect(403);
+            .expect(404);
 
-        expect(upstreamRequests).toHaveLength(0);
-        expect(res.body.error.message).toMatch(/accion_inventada/);
+        expect(upstreamRequests).toHaveLength(1);
     });
 
     test('GET /aod/api/algo-que-no-es-action responde 404 sin llegar al upstream', async () => {
@@ -189,9 +188,6 @@ describe('ckan-api-proxy (integración)', () => {
     });
 
     test('respuestas binarias se devuelven sin reescritura', async () => {
-        // binary_endpoint no es una acción de la whitelist; lo añadimos vía
-        // EXTRA_ALLOWED_ACTIONS para este caso.
-        process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS = 'binary_endpoint';
         const app = buildApp();
         const res = await request(app)
             .get('/aod/api/3/action/binary_endpoint')
@@ -208,7 +204,6 @@ describe('ckan-api-proxy (integración)', () => {
         expect(res.body.length).toBe(4);
         expect(res.body[0]).toBe(0x00);
         expect(res.body[3]).toBe(0x03);
-        delete process.env.CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS;
     });
 
     test('cuando CKAN_API_PROXY_TARGET no está configurado, responde 503', async () => {
