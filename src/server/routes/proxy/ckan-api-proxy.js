@@ -26,73 +26,49 @@ const logger = require('../../conf/logger');
 const router = express.Router();
 
 /**
- * Extrae el nombre de la acción CKAN a partir del path de la petición
- * tras el montaje en `/aod/api`.
- *
- * Se aceptan dos formas de URL equivalentes:
- *   - /aod/api/3/action/<accion>   (con versión explícita, forma canónica CKAN)
- *   - /aod/api/action/<accion>     (sin versión, forma abreviada)
- *
- * Ejemplos:
- *   /3/action/package_show           -> 'package_show'
- *   /3/action/package_show?id=foo    -> 'package_show'
- *   /action/package_show             -> 'package_show'
- *   /action/package_show?id=foo      -> 'package_show'
- *   /3/action/                       -> ''
- *   /action/                         -> ''
- *   /                                -> ''
+ * Extrae todos los segmentos del path que tengan forma de nombre de acción
+ * CKAN (sólo letras minúsculas y guiones bajos, e.g. 'package_create').
+ * Se comprueban todos los segmentos para cubrir tanto /action/<accion>
+ * como cualquier otra forma en que CKAN pueda recibir el nombre de acción.
  *
  * @param {string} reqPath req.path tal cual lo da Express tras el mount.
- * @returns {string} Nombre de la acción o cadena vacía si no se reconoce.
+ * @returns {string[]} Lista de segmentos que parecen nombres de acción.
  */
-function extractAction(reqPath) {
+function extractActionSegments(reqPath) {
     if (typeof reqPath !== 'string') {
-        return '';
+        return [];
     }
-    const m = reqPath.match(/^\/?(?:\d+\/)?action\/([^/?#]+)/);
-    return m ? m[1] : '';
+    return reqPath.split('/').filter((s) => /^[a-z][a-z0-9_]+$/.test(s));
 }
 
 /**
- * Middleware de seguridad. Comprueba la whitelist antes de pasar al proxy.
- * Si la acción no está permitida, devuelve 403 sin contactar con CKAN.
+ * Middleware de seguridad.
+ * Comprueba todos los segmentos del path contra la blocklist.
+ * Si alguno coincide con una acción bloqueada, devuelve 403.
+ * Cualquier path que no contenga segmentos bloqueados pasa al proxy.
  */
 function actionGuard(req, res, next) {
-    const action = extractAction(req.path);
-    if (action.length === 0) {
-        // No reconocemos la acción. Solo dejamos pasar peticiones a `/3/action/`
-        // sin nombre cuando son la propia URL de descubrimiento (action_list/help_show)
-        // — si alguien las invoca con nombre, se resolverán con allow-by-default. Aquí
-        // denegamos por seguridad.
-        logger.warning(
-            'ckan-api-proxy: petición rechazada por path no reconocido. ' +
-            'method=' + req.method + ' path=' + req.originalUrl + ' ip=' + (req.ip || 'unknown')
-        );
-        return res.status(404).json({
-            success: false,
-            error: { __type: 'Not Found Error', message: 'Endpoint no reconocido bajo /aod/api' },
-        });
+    const segments = extractActionSegments(req.path);
+
+    for (const segment of segments) {
+        const verdict = whitelist.isAllowed(segment);
+        if (!verdict.allowed) {
+            logger.warning(
+                'ckan-api-proxy: acción denegada. action=' + segment +
+                ' reason=' + verdict.reason +
+                ' method=' + req.method +
+                ' ip=' + (req.ip || 'unknown')
+            );
+            return res.status(403).json({
+                success: false,
+                error: {
+                    __type: 'Authorization Error',
+                    message: 'La acción "' + segment + '" no está expuesta a través de /aod/api',
+                },
+            });
+        }
     }
 
-    const verdict = whitelist.isAllowed(action);
-    if (!verdict.allowed) {
-        logger.warning(
-            'ckan-api-proxy: acción denegada. action=' + action +
-            ' reason=' + verdict.reason +
-            ' method=' + req.method +
-            ' ip=' + (req.ip || 'unknown')
-        );
-        return res.status(403).json({
-            success: false,
-            error: {
-                __type: 'Authorization Error',
-                message: 'La acción "' + action + '" no está expuesta a través de /aod/api',
-            },
-        });
-    }
-
-    // Marcamos la acción en req para los hooks del proxy.
-    req.ckanAction = action;
     return next();
 }
 
@@ -138,7 +114,7 @@ function buildProxy() {
             const start = Date.now();
             req._proxyStartTs = start;
             logger.debug(
-                'ckan-api-proxy: -> upstream. action=' + (req.ckanAction || '?') +
+                'ckan-api-proxy: -> upstream.' +
                 ' method=' + req.method +
                 ' path=' + req.originalUrl
             );
@@ -146,7 +122,7 @@ function buildProxy() {
         onProxyRes: responseInterceptor(async function (responseBuffer, proxyRes, req, res) {
             const elapsed = Date.now() - (req._proxyStartTs || Date.now());
             const contentType = proxyRes.headers['content-type'] || '';
-            const action = req.ckanAction || extractAction(req.path) || '?';
+            const path = req.originalUrl || '?';
 
             // Solo reescribimos cuerpos textuales (JSON/HTML/text). Para
             // binarios devolvemos el buffer tal cual.
@@ -157,7 +133,8 @@ function buildProxy() {
 
             if (!isTextual) {
                 logger.info(
-                    'ckan-api-proxy: <- upstream. action=' + action +
+                    'ckan-api-proxy: <- upstream.' +
+                    ' path=' + path +
                     ' status=' + proxyRes.statusCode +
                     ' bytes=' + responseBuffer.length +
                     ' ms=' + elapsed +
@@ -172,7 +149,7 @@ function buildProxy() {
                 onResidual: function (info) {
                     logger.warning(
                         'ckan-api-proxy: residual /ckan/ detectado en respuesta. ' +
-                        'action=' + action +
+                        'path=' + path +
                         ' count=' + info.count +
                         ' samples=' + JSON.stringify(info.samples)
                     );
@@ -180,7 +157,8 @@ function buildProxy() {
             });
 
             logger.info(
-                'ckan-api-proxy: <- upstream. action=' + action +
+                'ckan-api-proxy: <- upstream.' +
+                ' path=' + path +
                 ' status=' + proxyRes.statusCode +
                 ' bytes=' + responseBuffer.length +
                 ' ms=' + elapsed +
@@ -192,7 +170,7 @@ function buildProxy() {
         onError: function (err, req, res) {
             logger.error(
                 'ckan-api-proxy: error de conexión con upstream. ' +
-                'action=' + (req.ckanAction || '?') +
+                'path=' + (req.originalUrl || '?') +
                 ' message=' + (err && err.message ? err.message : String(err))
             );
             if (!res.headersSent) {

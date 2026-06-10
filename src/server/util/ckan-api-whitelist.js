@@ -4,36 +4,42 @@
  * Blocklist de acciones de la API CKAN expuestas a través del proxy /aod/api.
  *
  * Política: allow-by-default.
- * Una acción se permite si NO coincide con ninguno de los patrones de
- * BLOCKED_ACTIONS_PATTERNS. No hay whitelist: cualquier acción de lectura
- * de CKAN pasa automáticamente sin necesidad de declararla.
+ * Los patrones de bloqueo se configuran mediante la variable de entorno
+ * CKAN_API_PROXY_BLOCKED_PATTERNS (patrones separados por comas).
+ * Si la variable está vacía o no se define, la blocklist queda vacía
+ * y todas las peticiones pasan al proxy sin restricción.
  *
- * Las acciones de escritura (create/update/delete/purge) se mantienen
- * accesibles SOLO desde las rutas internas /aod/services/admin/* con
- * verifyToken; están cubiertas por los patrones de bloqueo.
+ * Ejemplo de valor en .env:
+ *   CKAN_API_PROXY_BLOCKED_PATTERNS='^.*_create$,^.*_delete$,^.*_update$'
  */
 
+const constants = require('./constants');
+
+/** Caché de los patrones compilados */
+let _cache = null;
+
 /**
- * Patrones de acciones explícitamente bloqueadas. Cualquier coincidencia
- * devuelve 403. El resto de acciones pasan (allow-by-default).
+ * Parsea CKAN_API_PROXY_BLOCKED_PATTERNS (patrones separados por comas) y devuelve un array de RegExp.
+ * Entradas vacías o inválidas se ignoran con un aviso en stderr.
  */
-const BLOCKED_ACTIONS_PATTERNS = Object.freeze([
-    /^.*_create$/,
-    /^.*_update$/,
-    /^.*_delete$/,
-    /^.*_patch$/,
-    /^.*_purge$/,
-    /^.*_revert$/,
-    /^follow_.*$/,
-    /^unfollow_.*$/,
-    // user_* completo excepto user_show (gestionado en isAllowed por orden)
-    /^user_(?!show$).*$/,
-    /^api_token_.*$/,
-    /^config_option_.*$/,
-    /^dashboard_.*$/,
-    /^job_.*$/,
-    /^datastore_.*$/,
-]);
+function getBlockedPatterns() {
+    if (_cache) return _cache;
+    const raw = constants.CKAN_API_PROXY_BLOCKED_PATTERNS || '';
+    _cache = raw.split(',').flatMap((s) => {
+        s = s.trim();
+        if (!s) return [];
+        try { return [new RegExp(s)]; }
+        catch (e) { process.stderr.write('ckan-api-whitelist: patrón inválido ignorado: ' + s + '\n'); return []; }
+    });
+    return _cache;
+}
+
+/**
+ * Permite resetear la caché (útil tras un reload o en tests).
+ */
+function resetCache() {
+    _cache = null;
+}
 
 /**
  * Devuelve { allowed: boolean, reason: string } indicando si la acción
@@ -45,17 +51,16 @@ function isAllowed(action) {
     if (typeof action !== 'string' || action.length === 0) {
         return { allowed: false, reason: 'empty_action' };
     }
-    // 1. Bloqueo explícito por patrón
-    for (const re of BLOCKED_ACTIONS_PATTERNS) {
+    for (const re of getBlockedPatterns()) {
         if (re.test(action)) {
             return { allowed: false, reason: 'blocked_pattern:' + re.toString() };
         }
     }
-    // 2. Allow-by-default
     return { allowed: true, reason: 'allow_by_default' };
 }
 
 module.exports = {
-    BLOCKED_ACTIONS_PATTERNS,
+    getBlockedPatterns,
+    resetCache,
     isAllowed,
 };
