@@ -26,6 +26,9 @@ router.get(constants.API_URL_DATASETS_COUNT, controller.getDatasetsCount);
 
 router.get(constants.API_URL_RESOURCES_COUNT, controller.getResourcesCount);
 
+/** GET VISITS OF DATASETS (TOTAL OR BY DATASET) */
+router.get(constants.API_URL_DATASETS_VISITS_COUNT, controller.getDatasetsVisitsCount);
+
 router.get(constants.API_URL_DATASETS_VOTES_COUNT, controller.getDatasetsVotesCount);
 
 /** GET DATASETS BY TOPIC */

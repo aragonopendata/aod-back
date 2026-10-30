@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   - Configuration via `CKAN_API_PROXY_TARGET`, `CKAN_API_PROXY_TARGET_PATH`, `CKAN_API_PROXY_LOG_LEVEL`, `CKAN_API_PROXY_EXTRA_ALLOWED_ACTIONS` env vars.
 - Response sanitiser middleware (`server/middleware/ckan-response-rewriter.js`) mounted on `/aod/services/web` and `/aod/services/admin`. It wraps `res.json` and runs the same URL rewriter over the bodies aod-back returns to its clients (the existing endpoints keep calling CKAN over the internal network; only the client-facing output is sanitised). Covers every endpoint that forwards CKAN data, including `getDatasetRDF` (XML). No-op when the body has no `/ckan` substring.
 - Jest test suite (`npm test`) with 42 tests covering the whitelist, the URL rewriter, the response middleware and integration of the proxy against a mock CKAN backend.
+- New `GET /aod/services/web/datasets/countVisits` endpoint (ODA-1942) returning visits to active public datasets, read from CKAN's `tracking_summary` table (same figure as `package_show` `tracking_summary.total`).
+  - Without parameters returns the global total: `{"success": true, "result": {"count": N}}`. Cached in memory for `DATASETS_VISITS_CACHE_TTL` seconds (default 3600); concurrent requests share a single query and a stale value is served if the database fails.
+  - `?dataset=<name or id>` returns the visits of a single dataset: `{"success": true, "result": {"dataset": "<name>", "count": N}}`. 404 if the dataset does not exist or is not public, 400 if the parameter is invalid.
 ## Updated
 - Functionality bugs fixed (admin)
 
