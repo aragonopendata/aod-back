@@ -13,6 +13,28 @@ const dbQueries = require('../../db/db-queries');
 const pool = db.getCkanPool();
 //LOG SETTINGS
 const logger = require("../../conf/logger");
+//DATASETS VISITS CACHE (global total only; tracking_summary is refreshed by CKAN's tracking update cron)
+const totalVisitsCache = { count: null, expires: 0, pending: null };
+
+const getTotalVisits = () => {
+    if (totalVisitsCache.count !== null && Date.now() < totalVisitsCache.expires) {
+        return Promise.resolve(totalVisitsCache.count);
+    }
+    // Concurrent requests share the same in-flight query
+    if (!totalVisitsCache.pending) {
+        logger.debug('Consultando total de visitas de datasets en base de datos');
+        totalVisitsCache.pending = pool.query(dbQueries.DB_CKAN_TOTAL_VISITS)
+            .then((result) => {
+                totalVisitsCache.count = Number(result.rows[0].count);
+                totalVisitsCache.expires = Date.now() + constants.DATASETS_VISITS_CACHE_TTL * 1000;
+                return totalVisitsCache.count;
+            })
+            .finally(() => {
+                totalVisitsCache.pending = null;
+            });
+    }
+    return totalVisitsCache.pending;
+}
 
 class DatasetController {
 
@@ -301,6 +323,44 @@ class DatasetController {
             });
         } catch (error) {
             logger.error('Error in route' + constants.API_URL_RESOURCES_COUNT);
+        }
+    }
+
+    getDatasetsVisitsCount = async (req, res) => {
+        logger.debug('Servicio: Número de visitas de datasets');
+        const dataset = req.query.dataset;
+
+        if (dataset !== undefined) {
+            if (typeof dataset !== 'string' || dataset.trim() === ''
+                || dataset.length > constants.DATASETS_VISITS_DATASET_MAX_LENGTH) {
+                res.status(constants.REQUEST_ERROR_BAD_DATA).json({ success: false, error: 'Parámetro dataset no válido' });
+                return;
+            }
+            try {
+                const result = await pool.query(dbQueries.DB_CKAN_DATASET_VISITS, [dataset.trim()]);
+                if (result.rows.length === 0) {
+                    res.status(constants.REQUEST_NOT_FOUND).json({ success: false, error: 'Dataset no encontrado' });
+                    return;
+                }
+                res.json({ success: true, result: { dataset: result.rows[0].name, count: Number(result.rows[0].count) } });
+            } catch (err) {
+                logger.error('Error obteniendo visitas del dataset ' + dataset + ': ' + err.stack);
+                res.status(constants.REQUEST_ERROR_INTERNAL_ERROR).json({ success: false, error: 'Error obteniendo visitas de datasets' });
+            }
+            return;
+        }
+
+        try {
+            const count = await getTotalVisits();
+            res.json({ success: true, result: { count: count } });
+        } catch (err) {
+            logger.error('Error obteniendo total de visitas de datasets: ' + err.stack);
+            if (totalVisitsCache.count !== null) {
+                logger.warning('Devolviendo total de visitas cacheado (caducado)');
+                res.json({ success: true, result: { count: totalVisitsCache.count } });
+                return;
+            }
+            res.status(constants.REQUEST_ERROR_INTERNAL_ERROR).json({ success: false, error: 'Error obteniendo visitas de datasets' });
         }
     }
 

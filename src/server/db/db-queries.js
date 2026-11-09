@@ -264,3 +264,12 @@ exports.DB_ADMIN_DELETE_FOCUS_CONTENT = 'DELETE FROM focus.contents_histories WH
 
 exports.DB_CKAN_TOTAL_RATING = 'SELECT package_id, count(package_id) AS total_votes FROM public.review ' + 
 								'GROUP BY package_id ORDER BY total_votes DESC';
+
+exports.DB_CKAN_TOTAL_VISITS = 'SELECT COALESCE(SUM(ts.count), 0) AS count FROM public.tracking_summary ts ' +
+								'JOIN public.package p ON p.id = ts.package_id ' +
+								'WHERE ts.tracking_type = \'page\' AND p.state = \'active\' AND p.private = false';
+
+exports.DB_CKAN_DATASET_VISITS = 'SELECT p.name, COALESCE(SUM(ts.count), 0) AS count FROM public.package p ' +
+								'LEFT JOIN public.tracking_summary ts ON ts.package_id = p.id AND ts.tracking_type = \'page\' ' +
+								'WHERE (p.name = $1 OR p.id = $1) AND p.state = \'active\' AND p.private = false ' +
+								'GROUP BY p.name';
