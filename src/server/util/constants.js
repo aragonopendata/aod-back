@@ -40,6 +40,7 @@ exports.API_URL_DATASETS_TAGS = '/datasets/tags';
 exports.API_URL_DATASETS_NEWEST = '/datasets/newest';
 exports.API_URL_DATASETS_DOWNLOADED = '/datasets/downloaded';
 exports.API_URL_DATASETS_COUNT = '/datasets/countDatasets';
+exports.API_URL_DATASETS_VISITS_COUNT = '/datasets/countVisits';
 exports.API_URL_DATASETS_VOTES_COUNT = '/datasets/countRating';
 exports.API_URL_RESOURCES_COUNT = '/datasets/countResources';
 exports.API_URL_DATASETS_TOPIC = '/datasets/topic';
@@ -279,6 +280,11 @@ exports.DB_CKAN_NAME = process.env.DB_CKAN_NAME;
 exports.DB_CKAN_PORT = process.env.DB_CKAN_PORT;
 exports.DB_CKAN_USER = process.env.DB_CKAN_USER;
 exports.DB_CKAN_PASSWORD = process.env.DB_CKAN_PASSWORD;
+
+/* ******************* */
+/* DATASETS VISITS */
+exports.DATASETS_VISITS_CACHE_TTL = parseInt(process.env.DATASETS_VISITS_CACHE_TTL) || 3600; // seconds
+exports.DATASETS_VISITS_DATASET_MAX_LENGTH = 100; // CKAN package name max length
 
 /* **************** */
 /* PROXY PROPERTIES */
